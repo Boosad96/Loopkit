@@ -1,0 +1,35 @@
+name: Encrypted Supabase backup
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: loopkit-manual-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && vars.LOOPKIT_BACKUPS_ENABLED == 'true'
+    environment: private-backup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 3.4.0
+      - name: Export and encrypt
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PUBLIC_KEY: ${{ secrets.BACKUP_PUBLIC_KEY }}
+          BACKUP_KEY_FINGERPRINT: ${{ vars.BACKUP_KEY_FINGERPRINT }}
+        run: bash scripts/backup-database.sh
+      - name: Retain only encrypted files and their checksums
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: loopkit-db-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/loopkit-backup
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sameOrigin } from './lib/origin'
 import { refreshSession } from './lib/account/refresh'
 
 export async function middleware(request:NextRequest) {
  const path=request.nextUrl.pathname
+ if(/^\/(dashboard|admin)(\/|$)/.test(path) && !request.cookies.getAll().some(c=>c.name.startsWith('sb-'))){
+   const redirect=NextResponse.redirect(new URL('/login',request.url))
+   redirect.headers.set('X-Robots-Tag','noindex, nofollow')
+   redirect.headers.set('Cache-Control','private, no-store')
+   return redirect
+ }
  const embedded=path.startsWith('/embed/')
  const hosted=process.env.NEXT_PUBLIC_SUPABASE_URL
  let supabaseOrigin=''
@@ -17,7 +24,7 @@ export async function middleware(request:NextRequest) {
  "frame-src 'self' https://challenges.cloudflare.com https://*.razorpay.com", "worker-src 'self' blob:"
  ].join('; ')
  const origin=request.headers.get('origin')
- if(path.startsWith('/api/')&&!['GET','HEAD','OPTIONS'].includes(request.method)&&origin&&origin!==request.nextUrl.origin&&origin!==process.env.NEXT_PUBLIC_SITE_URL)
+ if(path.startsWith('/api/')&&!['GET','HEAD','OPTIONS'].includes(request.method)&&origin&&!sameOrigin(origin,request.url))
    return NextResponse.json({error:'Request origin is not allowed.'},{status:403})
  const headers=new Headers(request.headers)
  headers.set('x-nonce',nonce);headers.set('Content-Security-Policy',csp)

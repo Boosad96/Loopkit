@@ -100,7 +100,7 @@ export const guides: Guide[] = [
   },
 ]
 
-export function publishedGuides() {
+export function releaseCandidates() {
   const approved = new Set((process.env.EDITORIAL_PUBLISHED_SLUGS ?? '').split(',').map(value => value.trim()))
   return guides.filter(guide => approved.has(guide.slug))
 }

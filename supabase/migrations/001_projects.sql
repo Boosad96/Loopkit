@@ -6,7 +6,7 @@ create table public.projects (
   title text not null check(length(title) between 1 and 100), config jsonb not null check(jsonb_typeof(config)='object' and octet_length(config::text)<=100000),
   owner_id uuid references auth.users on delete cascade, management_hash text,
   revision integer not null default 1, created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
-  check((owner_id is null and management_hash ~ '^[0-9a-f]{64}$') or (owner_id is not null and management_hash is null))
+  check((owner_id is null and management_hash is not null and management_hash ~ '^[0-9a-f]{64}$') or (owner_id is not null and management_hash is null))
 );
 create index projects_owner_created on public.projects(owner_id,created_at desc);
 create table public.project_memberships(project_id uuid references public.projects on delete cascade,user_id uuid references auth.users on delete cascade,role text not null check(role='organizer'),primary key(project_id,user_id));
@@ -118,7 +118,7 @@ end $$;
 create function public.project_participate(p_slug text,p_actor text,p_action text,p_options uuid[]) returns boolean language plpgsql set search_path='' as $$
 declare rec public.projects%rowtype; poll public.polls%rowtype;
 begin
- select pr.* into rec from public.projects pr join public.public_pages pg on pg.project_id=pr.id where pr.slug=p_slug and pg.visible and (pg.expires_at is null or pg.expires_at>now()) for share of pr,pg;
+ select pr.* into rec from public.projects pr join public.public_pages pg on pg.project_id=pr.id where pr.slug=p_slug and pg.visible and coalesce(pr.config->>'visibility','shared')='shared' and (pg.expires_at is null or pg.expires_at>now()) for share of pr,pg;
  if rec.id is null then raise exception 'Unavailable'; end if;
  if rec.kind='poll-maker' and p_action='vote' then
   select * into poll from public.polls where project_id=rec.id;
@@ -144,7 +144,7 @@ end $$;
 create function public.project_view(p_slug text,p_actor text) returns jsonb language plpgsql stable set search_path='' as $$
 declare rec public.projects%rowtype; v boolean:=false; n bigint:=0; totals jsonb:='{}'; joined bigint:=0; finished bigint:=0; participating boolean:=false; completed boolean:=false;
 begin
- select pr.* into rec from public.projects pr join public.public_pages pg on pg.project_id=pr.id where pr.slug=p_slug and pg.visible and (pg.expires_at is null or pg.expires_at>now());
+ select pr.* into rec from public.projects pr join public.public_pages pg on pg.project_id=pr.id where pr.slug=p_slug and pg.visible and coalesce(pr.config->>'visibility','shared')='shared' and (pg.expires_at is null or pg.expires_at>now());
  if rec.id is null then return null; end if;
  if rec.kind='poll-maker' then
   select exists(select 1 from public.poll_votes where project_id=rec.id and voter=p_actor) into v;

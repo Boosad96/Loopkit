@@ -166,3 +166,75 @@ end $$;
 revoke all on function public.report_directory_entry(uuid,uuid,text) from public,anon,authenticated;
 grant execute on function public.report_directory_entry(uuid,uuid,text) to service_role;
 commit;
+
+begin;
+create table public.site_settings(key text primary key,value jsonb not null,updated_at timestamptz not null default now());
+insert into public.site_settings(key,value) values('adsense_enabled','false'),('analytics_retention_days','30');
+alter table public.site_settings enable row level security;
+revoke all on public.site_settings from public,anon,authenticated;
+grant select on public.site_settings to authenticated;
+create policy admin_read_settings on public.site_settings for select to authenticated using((select public.is_loopkit_admin()));
+create function public.update_site_setting(setting text, new_value jsonb) returns void language plpgsql security definer set search_path='' as $$
+begin
+ if not public.is_loopkit_admin() then raise exception 'Unauthorized'; end if;
+ if not (setting='adsense_enabled' and jsonb_typeof(new_value)='boolean' or setting='analytics_retention_days' and jsonb_typeof(new_value)='number' and new_value::text ~ '^[1-9][0-9]{0,2}$') then raise exception 'Invalid setting'; end if;
+ update public.site_settings set value=new_value,updated_at=now() where key=setting;
+ insert into public.moderation_actions(actor_id,action,details) values(auth.uid(),'settings.update',jsonb_build_object('key',setting,'value',new_value));
+end $$;
+revoke all on function public.update_site_setting(text,jsonb) from public,anon,authenticated;
+grant execute on function public.update_site_setting(text,jsonb) to authenticated;
+create table public.analytics_events(id bigint generated always as identity primary key, visitor_id uuid not null,
+ event text not null check(event in ('page_view','tool_view','tool_start','tool_complete','share','shared_visit','remix','project_create','registration','listing_submit')),
+ project_id uuid references public.projects on delete cascade,created_at timestamptz not null default now());
+create index analytics_visitor_date on public.analytics_events(visitor_id,created_at desc);
+create index analytics_project_date on public.analytics_events(project_id,created_at desc);
+create index analytics_retention on public.analytics_events(created_at);
+alter table public.analytics_events enable row level security;
+revoke all on public.analytics_events from public,anon,authenticated;
+create function public.record_usage(visitor uuid,kind text,project_slug text) returns void language plpgsql security definer set search_path='' as $$
+declare pid uuid;
+begin
+ perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(visitor::text,3));
+ if (select count(*) from public.analytics_events where visitor_id=visitor and created_at>now()-interval '10 minutes')>=80 then return; end if;
+ if project_slug is not null then select p.id into pid from public.projects p join public.public_pages pp on pp.project_id=p.id where p.slug=project_slug and pp.visible and (pp.expires_at is null or pp.expires_at>now()); if pid is null then return; end if; end if;
+ insert into public.analytics_events(visitor_id,event,project_id) values(visitor,kind,pid);
+end $$;
+create function public.purge_usage() returns bigint language plpgsql security definer set search_path='' as $$
+declare n bigint; days int;
+begin
+ select value::text::int into days from public.site_settings where key='analytics_retention_days';
+ delete from public.analytics_events where created_at<now()-make_interval(days=>coalesce(days,30));
+ get diagnostics n = row_count; return n;
+end $$;
+create function public.usage_summary() returns table(event text,total bigint,visitors bigint) language sql stable security definer set search_path='' as $$
+ select a.event,count(*),count(distinct a.visitor_id) from public.analytics_events a where a.created_at>=now()-interval '30 days'
+ and (public.is_loopkit_admin() or exists(select 1 from public.projects p where p.id=a.project_id and p.owner_id=auth.uid())) group by a.event $$;
+revoke all on function public.record_usage(uuid,text,text),public.purge_usage(),public.usage_summary() from public,anon,authenticated;
+grant execute on function public.record_usage(uuid,text,text),public.purge_usage() to service_role;
+grant execute on function public.usage_summary() to authenticated;
+grant all on public.analytics_events,public.site_settings,public.profiles,public.community_listings,public.listing_votes,public.listing_reports,public.moderation_actions to service_role;
+commit;
+
+begin;
+create function public.moderate_project(project uuid,allow_view boolean) returns void language plpgsql security definer set search_path='' as $$
+begin
+ if not public.is_loopkit_admin() then raise exception 'Unauthorized'; end if;
+ update public.public_pages set visible=allow_view where project_id=project;
+ if not found then raise exception 'Project unavailable'; end if;
+ insert into public.moderation_actions(actor_id,action,target_id) values(auth.uid(),case when allow_view then 'project.restore' else 'project.hide' end,project);
+end $$;
+revoke all on function public.moderate_project(uuid,boolean) from public,anon,authenticated;
+grant execute on function public.moderate_project(uuid,boolean) to authenticated;
+commit;
+
+begin;
+create function public.set_tool_policy(slug text,available boolean,indexable boolean) returns void language plpgsql security definer set search_path='' as $$
+begin
+ if not public.is_loopkit_admin() or slug not in ('countdown-maker','tournament-bracket-maker','poll-maker','random-team-generator','leaderboard-maker','spin-wheel','community-event-page-maker','discord-timestamp-generator','community-rules-generator','tier-list-maker','discord-emoji-resizer','telegram-sticker-resizer','gaming-profile-card-maker','goal-tracker','community-challenge-maker','community-link-page-maker') then raise exception 'Invalid request'; end if;
+ insert into public.site_settings as s(key,value) values('tool.'||slug,jsonb_build_object('available',available,'indexable',indexable))
+ on conflict(key) do update set value=excluded.value,updated_at=now();
+ insert into public.moderation_actions(actor_id,action,details) values(auth.uid(),'tool.update',jsonb_build_object('slug',slug,'available',available,'indexable',indexable));
+end $$;
+revoke all on function public.set_tool_policy(text,boolean,boolean) from public,anon,authenticated;
+grant execute on function public.set_tool_policy(text,boolean,boolean) to authenticated;
+commit;

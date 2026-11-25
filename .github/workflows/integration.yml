@@ -1,0 +1,39 @@
+name: Verify hosted flows locally
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: npm ci
+      - run: supabase start -x studio,storage-api,imgproxy,logflare,vector,edge-runtime,realtime,supavisor
+      - name: Connect to disposable local Supabase
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(supabase status -o env | sed -nE '/^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=/p')"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config integration/playwright.config.ts
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: authenticated-screen-review
+          path: qa/authenticated-*.png
+          retention-days: 5

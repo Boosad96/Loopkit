@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react';
 import { brand } from '../lib/brand';
 import { useEffect, useRef, useState } from 'react';
 import { Activity, ChartNoAxesColumnIncreasing, Check, Clock3, Flag, Link2, Radio, Shield, Trophy, Users, Vote } from 'lucide-react';
@@ -38,16 +37,13 @@ const demos=['Overview','Poll','Leaderboard'] as const;
 const demoVotes = [{name:'Neon Harbor',votes:3}, {name:'Dust Valley',votes:3}] as const;
 
 function DemoPoll({choice,onVote}:{choice:string|null;onVote:(value:string)=>void}){
-  const reduced=useReducedMotion();
   return <div className="lk-demo-vote">
     <b>Which map should we play?</b>
     <div>{demoVotes.map(option=>{
       const selected=choice===option.name;
       const share=Math.round((option.votes+Number(selected))*100/(6+Number(Boolean(choice))));
       return <button key={option.name} aria-pressed={selected} onClick={()=>onVote(option.name)}>
-        {choice&&<m.span className="lk-vote-fill" aria-hidden="true"
-          initial={{scaleX:0}} animate={{scaleX:share/100}}
-          transition={{duration:reduced?0:.2}}/>}
+        <span className="lk-vote-fill" aria-hidden="true" style={{transform:"scaleX("+(choice?share/100:0)+")"}}/>
         <span>{option.name}{choice?' · '+share+'%':''}</span>{selected&&<Check size={13}/>}
       </button>;
     })}</div>
@@ -55,8 +51,8 @@ function DemoPoll({choice,onVote}:{choice:string|null;onVote:(value:string)=>voi
 }
 export function BrandHubDemo(){
   const [tab,setTab]=useState<typeof demos[number]>('Overview');const [rsvp,setRsvp]=useState(false);const [vote,setVote]=useState<string|null>(null);
-  return <LazyMotion features={domAnimation}><div className="lk-demo"><div className="lk-demo-top"><span><Radio size={14}/> Event Hub</span><small>Demo data</small></div><div className="lk-demo-content"><div className="lk-demo-title"><div className="lk-demo-symbol"><Flag size={22}/></div><div><h3>Friday Night Arena</h3><span>Community game night</span></div></div>
+  return <div className="lk-demo"><div className="lk-demo-top"><span><Radio size={14}/> Event Hub</span><small>Demo data</small></div><div className="lk-demo-content"><div className="lk-demo-title"><div className="lk-demo-symbol"><Flag size={22}/></div><div><h3>Friday Night Arena</h3><span>Community game night</span></div></div>
     <div className="lk-demo-tabs" aria-label="Preview sections">{demos.map(t=><button key={t} aria-pressed={t===tab} onClick={()=>setTab(t)}>{t}</button>)}</div>
     {tab==='Overview'?<div className="lk-demo-panel"><div><span className="lk-demo-kicker"><Users size={15}/>Guest list</span><p>{rsvp?'You’re on the list.':'Join the next game night.'}</p></div><button className="lk-button lk-button-soft" aria-pressed={rsvp} onClick={()=>setRsvp(!rsvp)}>{rsvp?<><Check size={15}/>Going</>:'RSVP'}</button></div>:tab==='Poll'?<DemoPoll choice={vote} onVote={setVote}/>:<ol className="lk-demo-ranking">{[['Orbit Five',24],['Echo Squad',18],['Northstar',12]].map(([name,score])=><li key={name}><Shield size={13}/><span>{name}</span><b>{score} pts</b></li>)}</ol>}
-    </div><div className="lk-demo-foot"><Activity size={12}/> Interactive preview</div></div></LazyMotion>;
+    </div><div className="lk-demo-foot"><Activity size={12}/> Interactive preview</div></div>;
 }

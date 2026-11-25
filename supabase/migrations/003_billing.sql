@@ -1,3 +1,4 @@
+begin;
 -- Test-mode financial records. All financial mutations run under server credentials.
 create extension if not exists btree_gist with schema extensions;
 set search_path = public, extensions;
@@ -64,13 +65,16 @@ do $$ declare tbl text; begin
     execute format('grant all on public.%I to service_role',tbl);
   end loop;
 end $$;
+grant select on public.directory_entries,public.community_listings,public.profiles to service_role;
+grant insert on public.moderation_actions to service_role;
+grant usage on sequence public.moderation_actions_id_seq to service_role;
 grant select on public.orders,public.subscriptions,public.payments,public.billing_refunds to authenticated;
 create policy own_orders on public.orders for select to authenticated using(user_id=auth.uid());
 create policy own_subscriptions on public.subscriptions for select to authenticated using(user_id=auth.uid());
 create policy own_payments on public.payments for select to authenticated using(exists(select 1 from public.orders o where o.id=order_id and o.user_id=auth.uid()));
 create policy own_refunds on public.billing_refunds for select to authenticated using(exists(select 1 from public.payments p where p.id=payment_id));
 
-create function public.billing_reserve(p_user uuid,p_request uuid,p_product text,p_listing uuid,p_start date)
+create function public.billing_reserve(p_user uuid,p_request uuid,p_product text,p_listing uuid,p_start date,p_amount integer default null,p_currency text default null)
 returns jsonb language plpgsql set search_path=public as $$
 declare o orders; price billing_prices; listing community_listings; slot text; start_time timestamptz;
 begin
@@ -80,8 +84,9 @@ begin
   -- A live subscription/order already prevents duplicate charges if a browser retries with another key.
   if (select count(*) from orders where user_id=p_user and created_at>now()-interval '1 hour') >= 12 then raise exception 'rate_limit'; end if;
   select * into strict price from billing_prices where product=p_product;
+  if p_amount is not null and (p_amount<>price.amount or p_currency is distinct from price.currency) then raise exception 'price_changed'; end if;
   update sponsorships set status='expired' where status='held' and hold_until<=now();
-  update subscriptions s set status='expired' from orders a where s.order_id=a.id and s.status='created' and a.created_at < now()-interval '20 minutes';
+  update subscriptions s set status='expired' from orders a where s.order_id=a.id and s.status='created' and a.provider_id is null and a.created_at < now()-interval '20 minutes';
   if p_product<>'pro' then
     select * into listing from community_listings where id=p_listing and owner_id=p_user and status='approved';
     if not found or not exists(select 1 from directory_entries d where d.id=p_listing) then raise exception 'listing_unavailable'; end if;
@@ -151,7 +156,7 @@ begin
     get diagnostics added=row_count;
     if added=0 then return 'duplicate_payment'; end if;
     if o.product='pro' then
-      update subscriptions set paid_until=greatest(paid_until,period_end), status=case when last_event_at is null or last_event_at<=evt then 'active' else status end,
+      update subscriptions set paid_until=greatest(paid_until,period_end), status=case when status in ('cancelled','completed') then status when last_event_at is null or last_event_at<=evt then 'active' else status end,
         last_event_at=greatest(last_event_at,evt),updated_at=now() where order_id=o.id;
     else
       select * into strict s from sponsorships where order_id=o.id for update;
@@ -178,8 +183,8 @@ begin
     on conflict(sponsorship_id,day) do update set views=sponsorship_metrics.views+excluded.views,clicks=sponsorship_metrics.clicks+excluded.clicks;
   delete from sponsorship_metric_receipts where day < current_date - 2;
 end $$;
-revoke all on function public.billing_reserve(uuid,uuid,text,uuid,date),public.billing_apply_event(text,text,text,jsonb),public.billing_has_pro(uuid),public.billing_record_metric(uuid,text,text) from public,anon,authenticated;
-grant execute on function public.billing_reserve(uuid,uuid,text,uuid,date),public.billing_apply_event(text,text,text,jsonb),public.billing_has_pro(uuid),public.billing_record_metric(uuid,text,text) to service_role;
+revoke all on function public.billing_reserve(uuid,uuid,text,uuid,date,integer,text),public.billing_apply_event(text,text,text,jsonb),public.billing_has_pro(uuid),public.billing_record_metric(uuid,text,text) from public,anon,authenticated;
+grant execute on function public.billing_reserve(uuid,uuid,text,uuid,date,integer,text),public.billing_apply_event(text,text,text,jsonb),public.billing_has_pro(uuid),public.billing_record_metric(uuid,text,text) to service_role;
 create function public.billing_set_price(p_actor uuid,p_product text,p_amount integer,p_currency text) returns void language plpgsql set search_path=public as $$
 begin
   if not exists (select 1 from profiles where id=p_actor and role='admin' and suspended_at is null) then raise exception 'admin_required'; end if;
@@ -189,3 +194,16 @@ begin
 end $$;
 revoke all on function public.billing_set_price(uuid,text,integer,text) from public,anon,authenticated;
 grant execute on function public.billing_set_price(uuid,text,integer,text) to service_role;
+
+-- Administrators can withdraw a campaign from rotation while preserving the payment ledger.
+create function public.billing_withdraw_placement(p_actor uuid,p_sponsor uuid) returns void language plpgsql set search_path=public as $$
+begin
+  if not exists (select 1 from profiles where id=p_actor and role='admin' and suspended_at is null) then raise exception 'admin_required'; end if;
+  update sponsorships set status='cancelled' where id=p_sponsor and status in ('held','confirmed');
+  if not found then raise exception 'inactive_reservation'; end if;
+  insert into moderation_actions(actor_id,action,target_id) values(p_actor,'billing_placement_withdrawn',p_sponsor);
+end $$;
+revoke all on function public.billing_withdraw_placement(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.billing_withdraw_placement(uuid,uuid) to service_role;
+
+commit;

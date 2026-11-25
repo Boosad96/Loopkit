@@ -8,7 +8,7 @@ import { brand } from '../lib/brand';
 
 const destinations = [['Tools','/tools'],['Discover','/discover'],['Create','/create'],['Pricing','/pricing']] as const;
 export function BrandLogo() {
-  return <Link href="/" className="lk-logo" aria-label={brand.name + ' home'}><Image unoptimized src={brand.logo} width="34" height="34" alt=""/>{brand.name}</Link>;
+  return <Link prefetch={false} href="/" className="lk-logo" aria-label={brand.name + ' home'}><Image unoptimized src={brand.logo} width="34" height="34" alt=""/>{brand.name}</Link>;
 }
 type Theme = 'system'|'dark'|'light';
 function applyTheme(theme:Theme) {
@@ -50,8 +50,8 @@ function ThemePicker(){
 export function BrandHeader(){
   const [open,setOpen]=useState(false);
   const button=useRef<HTMLButtonElement>(null);
-  return <header className="lk-header" onKeyDown={e=>{if(open&&e.key==='Escape'){setOpen(false);button.current?.focus()}}}><div className="lk-nav-wrap"><BrandLogo/><nav aria-label="Main" className="lk-desktop-nav">{destinations.map(([label,url])=><Link key={url} href={url}>{label}</Link>)}</nav><div className="lk-nav-actions"><ThemePicker/><Link className="lk-login" href="/login">Sign in</Link><Link className="lk-button lk-button-main lk-header-start" href="/create">Get started</Link><button ref={button} className="lk-icon-button lk-menu" aria-label={open?'Close navigation':'Open navigation'} aria-controls="lk-mobile-menu" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?<X size={20}/>:<Menu size={20}/>}</button></div></div>{open&&<nav id="lk-mobile-menu" aria-label="Mobile" className="lk-mobile-nav">{[...destinations,['Sign in','/login']].map(([label,url])=><Link key={url} href={url} onClick={()=>setOpen(false)}>{label}<ArrowUpRight size={15}/></Link>)}</nav>}</header>;
+  return <header className="lk-header" onKeyDown={e=>{if(open&&e.key==='Escape'){setOpen(false);button.current?.focus()}}}><div className="lk-nav-wrap"><BrandLogo/><nav aria-label="Main" className="lk-desktop-nav">{destinations.map(([label,url])=><Link prefetch={false} key={url} href={url}>{label}</Link>)}</nav><div className="lk-nav-actions"><ThemePicker/><Link prefetch={false} className="lk-login" href="/login">Sign in</Link><Link prefetch={false} className="lk-button lk-button-main lk-header-start" href="/create">Get started</Link><button ref={button} className="lk-icon-button lk-menu" aria-label={open?'Close navigation':'Open navigation'} aria-controls="lk-mobile-menu" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?<X size={20}/>:<Menu size={20}/>}</button></div></div>{open&&<nav id="lk-mobile-menu" aria-label="Mobile" className="lk-mobile-nav">{[...destinations,['Sign in','/login']].map(([label,url])=><Link prefetch={false} key={url} href={url} onClick={()=>setOpen(false)}>{label}<ArrowUpRight size={15}/></Link>)}</nav>}</header>;
 }
 export function BrandFooter(){
-  return <footer className="lk-footer"><div className="lk-container lk-footer-inner"><div><BrandLogo/><p>{brand.positioning}</p></div><nav aria-label="Footer">{[['Tools','/tools'],['Community','/discover'],['About','/about'],['Contact','/contact'],['Privacy','/privacy'],['Terms','/terms']].map(([name,url])=><Link href={url} key={url}>{name}</Link>)}</nav></div></footer>;
+  return <footer className="lk-footer"><div className="lk-container lk-footer-inner"><div><BrandLogo/><p>{brand.positioning}</p></div><nav aria-label="Footer">{[['Tools','/tools'],['Community','/discover'],['About','/about'],['Contact','/contact'],['Privacy','/privacy'],['Terms','/terms']].map(([name,url])=><Link prefetch={false} href={url} key={url}>{name}</Link>)}</nav></div></footer>;
 }

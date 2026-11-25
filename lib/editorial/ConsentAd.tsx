@@ -41,7 +41,8 @@ export function ConsentAd({publisher,slot}:{publisher:string,slot:string}) {
     const render = () => {
       if (!active || !ad.current || ad.current.dataset.requested || window.loopkitAdConsent?.mayLoadGoogleAds() !== true) return
       ad.current.dataset.requested = 'true'
-      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      window.adsbygoogle ??= []
+      window.adsbygoogle.push({})
     }
     const ready = () => { if (script) script.dataset.ready = 'true'; render() }
     if (script) {
@@ -59,7 +60,7 @@ export function ConsentAd({publisher,slot}:{publisher:string,slot:string}) {
     }
     return ()=>{ active=false; script?.removeEventListener('load',ready) }
   },[allowed,publisher])
-  if (!allowed) return null
+  if (!allowed) return <div aria-hidden="true" className={styles.ad}/>
   return <aside className={styles.ad} aria-label="Advertisement"><span>Advertisement</span>
     <ins ref={ad} className="adsbygoogle" style={{display:'block',minHeight:250}} data-ad-client={'ca-'+publisher} data-ad-slot={slot} data-ad-format="auto" data-full-width-responsive="true"/>
   </aside>

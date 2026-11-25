@@ -1,24 +1,271 @@
 "use client";
 import NextImage from "next/image";
 import { useState } from "react";
-import { canvasBlob,downloadBlob,readImage } from "./common";
-type Tier={name:string,color:string};
-type Item={id:string,name:string,image:string,tier:number};
-const defaults:Tier[]=["S","A","B","C","D","F"].map((name,i)=>({name,color:["#fda4af","#fdba74","#fde68a","#bef264","#67e8f9","#a5b4fc"][i]}));
-const key="loopkit:tier-list:v1";
-export function Tiers(){
-  const [tiers,setTiers]=useState(defaults),[items,setItems]=useState<Item[]>([]),[message,setMessage]=useState(""),[busy,setBusy]=useState(false);
-  const move=(id:string,tier:number)=>setItems(current=>current.map(item=>item.id===id?{...item,tier}:item));
-  async function upload(files:FileList|null){if(!files?.length)return;if(files.length+items.length>48){setMessage("Use up to 48 images per list.");return;}setBusy(true);setMessage("");try{const batch:Item[]=[];for(const file of Array.from(files)){const bitmap=await readImage(file);try{const c=document.createElement("canvas");c.width=96;c.height=96;const ctx=c.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");const scale=Math.min(96/bitmap.width,96/bitmap.height),w=bitmap.width*scale,h=bitmap.height*scale;ctx.drawImage(bitmap,(96-w)/2,(96-h)/2,w,h);batch.push({id:crypto.randomUUID(),name:file.name.slice(0,100),tier:-1,image:c.toDataURL("image/png")});}finally{bitmap.close();}}setItems(current=>[...current,...batch]);}catch(e){setMessage((e as Error).message);}finally{setBusy(false);}}
-  async function exportImage(){setBusy(true);try{const width=960,cell=88,label=160,columns=8;const c=document.createElement("canvas");c.width=width;c.height=tiers.reduce((h,_,i)=>h+cell*Math.max(1,Math.ceil(items.filter(t=>t.tier===i).length/columns)),0);const ctx=c.getContext("2d");if(!ctx)throw new Error("Canvas is unavailable.");let y=0;
-  for(const [i,tier] of tiers.entries()){const row=items.filter(t=>t.tier===i),height=cell*Math.max(1,Math.ceil(row.length/columns));ctx.fillStyle="#171f2b";ctx.fillRect(0,y,width,height);ctx.fillStyle=tier.color;ctx.fillRect(0,y,label,height);ctx.fillStyle="#101418";ctx.font="bold 30px sans-serif";ctx.fillText(tier.name,12,y+45,label-24);
-  for(const [j,item] of row.entries()){const image=new Image();image.src=item.image;await image.decode();ctx.drawImage(image,label+(j%columns)*cell,y+Math.floor(j/columns)*cell,cell,cell);} y+=height;}
-  downloadBlob(await canvasBlob(c),"tier-list.png");}catch(e){setMessage((e as Error).message);}finally{setBusy(false);}}
-  function load(){try{const saved=JSON.parse(localStorage.getItem(key)||"null");if(!saved)throw new Error("No saved list on this device.");if(!Array.isArray(saved.tiers)||saved.tiers.length!==6||!saved.tiers.every((t:Tier)=>typeof t.name==="string"&&t.name.length<=20&&/^#[a-f0-9]{6}$/i.test(t.color))||!Array.isArray(saved.items)||saved.items.length>48||!saved.items.every((v:Item)=>typeof v.id==="string"&&typeof v.name==="string"&&typeof v.image==="string"&&/^data:image\/png;base64,[a-z0-9+/=]+$/i.test(v.image)&&Number.isInteger(v.tier)&&v.tier>=-1&&v.tier<6))throw new Error("Saved list is invalid.");setTiers(saved.tiers);setItems(saved.items);setMessage("Saved list opened.");}catch(e){setMessage((e as Error).message);}}
-  function row(index:number){return <div key={index} className="lk-tier" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();move(e.dataTransfer.getData("text/plain"),index);}}>
-  {index<0?<h3>Unranked images</h3>:<div className="lk-tier-label"><input aria-label={"Tier "+(index+1)+" name"} maxLength={20} value={tiers[index].name} onChange={e=>setTiers(tiers.map((t,i)=>i===index?{...t,name:e.target.value}:t))}/><input type="color" aria-label={"Tier "+(index+1)+" color"} value={tiers[index].color} onChange={e=>setTiers(tiers.map((t,i)=>i===index?{...t,color:e.target.value}:t))}/></div>}
-  {items.filter(t=>t.tier===index).map(item=><div key={item.id} draggable onDragStart={e=>e.dataTransfer.setData("text/plain",item.id)}><NextImage unoptimized alt={item.name} src={item.image} width={64} height={64}/><select aria-label={"Tier for "+item.name} value={index} onChange={e=>move(item.id,Number(e.target.value))}><option value={-1}>Unranked</option>{tiers.map((t,i)=><option key={i} value={i}>{t.name}</option>)}</select><button onClick={()=>setItems(items.filter(t=>t.id!==item.id))}>Remove {item.name}</button></div>)}</div>;}
-  return <section><label>Add local images<input disabled={busy} type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={e=>{void upload(e.target.files);e.target.value="";}}/></label><p>Drop each image onto a tier or use its tier selector. Export includes ranked images.</p>{tiers.map((_,i)=>row(i))}{row(-1)}
-  <button disabled={busy||!items.some(i=>i.tier>=0)} onClick={()=>void exportImage()}>Export tier list PNG</button> <button disabled={busy} onClick={()=>{try{localStorage.setItem(key,JSON.stringify({tiers,items}));setMessage("List saved on this device.");}catch{setMessage("Storage unavailable or full. Export the list instead.");}}}>Save on device</button> <button disabled={busy} onClick={load}>Open saved list</button><p role="status">{message}</p></section>;
+import { canvasBlob, downloadBlob, readImage } from "./common";
+type Tier = { name: string; color: string };
+type Item = { id: string; name: string; image: string; tier: number };
+const defaults: Tier[] = ["S", "A", "B", "C", "D", "F"].map((name, i) => ({
+  name,
+  color: ["#fda4af", "#fdba74", "#fde68a", "#bef264", "#67e8f9", "#a5b4fc"][i],
+}));
+const key = "loopkit:tier-list:v1";
+export function Tiers() {
+  const [tiers, setTiers] = useState(defaults),
+    [items, setItems] = useState<Item[]>([]),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false);
+  const move = (id: string, tier: number) =>
+    setItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, tier } : item)),
+    );
+  async function upload(files: FileList | null) {
+    if (!files?.length) return;
+    if (files.length + items.length > 48) {
+      setMessage("Use up to 48 images per list.");
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    try {
+      const batch: Item[] = [];
+      for (const file of Array.from(files)) {
+        const bitmap = await readImage(file);
+        try {
+          const c = document.createElement("canvas");
+          c.width = 96;
+          c.height = 96;
+          const ctx = c.getContext("2d");
+          if (!ctx) throw new Error("Canvas is unavailable.");
+          const scale = Math.min(96 / bitmap.width, 96 / bitmap.height),
+            w = bitmap.width * scale,
+            h = bitmap.height * scale;
+          ctx.drawImage(bitmap, (96 - w) / 2, (96 - h) / 2, w, h);
+          batch.push({
+            id: crypto.randomUUID(),
+            name: file.name.slice(0, 100),
+            tier: -1,
+            image: c.toDataURL("image/png"),
+          });
+        } finally {
+          bitmap.close();
+        }
+      }
+      setItems((current) => [...current, ...batch]);
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function exportImage() {
+    setBusy(true);
+    try {
+      const width = 960,
+        cell = 88,
+        label = 160,
+        columns = 8;
+      const c = document.createElement("canvas");
+      c.width = width;
+      c.height = tiers.reduce(
+        (h, _, i) =>
+          h +
+          cell *
+            Math.max(
+              1,
+              Math.ceil(items.filter((t) => t.tier === i).length / columns),
+            ),
+        0,
+      );
+      const ctx = c.getContext("2d");
+      if (!ctx) throw new Error("Canvas is unavailable.");
+      let y = 0;
+      for (const [i, tier] of tiers.entries()) {
+        const row = items.filter((t) => t.tier === i),
+          height = cell * Math.max(1, Math.ceil(row.length / columns));
+        ctx.fillStyle = "#171f2b";
+        ctx.fillRect(0, y, width, height);
+        ctx.fillStyle = tier.color;
+        ctx.fillRect(0, y, label, height);
+        ctx.fillStyle = "#101418";
+        ctx.font = "bold 30px sans-serif";
+        ctx.fillText(tier.name, 12, y + 45, label - 24);
+        for (const [j, item] of row.entries()) {
+          const image = new Image();
+          image.src = item.image;
+          await image.decode();
+          ctx.drawImage(
+            image,
+            label + (j % columns) * cell,
+            y + Math.floor(j / columns) * cell,
+            cell,
+            cell,
+          );
+        }
+        y += height;
+      }
+      downloadBlob(await canvasBlob(c), "tier-list.png");
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || "null");
+      if (!saved) throw new Error("No saved list on this device.");
+      if (
+        !Array.isArray(saved.tiers) ||
+        saved.tiers.length !== 6 ||
+        !saved.tiers.every(
+          (t: Tier) =>
+            typeof t.name === "string" &&
+            t.name.length <= 20 &&
+            /^#[a-f0-9]{6}$/i.test(t.color),
+        ) ||
+        !Array.isArray(saved.items) ||
+        saved.items.length > 48 ||
+        !saved.items.every(
+          (v: Item) =>
+            typeof v.id === "string" &&
+            typeof v.name === "string" &&
+            typeof v.image === "string" &&
+            /^data:image\/png;base64,[a-z0-9+/=]+$/i.test(v.image) &&
+            Number.isInteger(v.tier) &&
+            v.tier >= -1 &&
+            v.tier < 6,
+        )
+      )
+        throw new Error("Saved list is invalid.");
+      setTiers(saved.tiers);
+      setItems(saved.items);
+      setMessage("Saved list opened.");
+    } catch (e) {
+      setMessage((e as Error).message);
+    }
+  }
+  function row(index: number) {
+    return (
+      <div
+        key={index}
+        className="lk-tier"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          move(e.dataTransfer.getData("text/plain"), index);
+        }}
+      >
+        {index < 0 ? (
+          <h3>Unranked images</h3>
+        ) : (
+          <div className="lk-tier-label">
+            <input
+              aria-label={"Tier " + (index + 1) + " name"}
+              maxLength={20}
+              value={tiers[index].name}
+              onChange={(e) =>
+                setTiers(
+                  tiers.map((t, i) =>
+                    i === index ? { ...t, name: e.target.value } : t,
+                  ),
+                )
+              }
+            />
+            <input
+              type="color"
+              aria-label={"Tier " + (index + 1) + " color"}
+              value={tiers[index].color}
+              onChange={(e) =>
+                setTiers(
+                  tiers.map((t, i) =>
+                    i === index ? { ...t, color: e.target.value } : t,
+                  ),
+                )
+              }
+            />
+          </div>
+        )}
+        {items
+          .filter((t) => t.tier === index)
+          .map((item) => (
+            <div
+              key={item.id}
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData("text/plain", item.id)}
+            >
+              <NextImage
+                unoptimized
+                alt={item.name}
+                src={item.image}
+                width={64}
+                height={64}
+              />
+              <select
+                aria-label={"Tier for " + item.name}
+                value={index}
+                onChange={(e) => move(item.id, Number(e.target.value))}
+              >
+                <option value={-1}>Unranked</option>
+                {tiers.map((t, i) => (
+                  <option key={i} value={i}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => setItems(items.filter((t) => t.id !== item.id))}
+              >
+                Remove {item.name}
+              </button>
+            </div>
+          ))}
+      </div>
+    );
+  }
+  return (
+    <section>
+      <label>
+        Add local images
+        <input
+          disabled={busy}
+          type="file"
+          multiple
+          accept="image/png,image/jpeg,image/webp"
+          onChange={(e) => {
+            void upload(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </label>
+      <p>
+        Drop each image onto a tier or use its tier selector. Export includes
+        ranked images.
+      </p>
+      {tiers.map((_, i) => row(i))}
+      {row(-1)}
+      <button
+        disabled={busy || !items.some((i) => i.tier >= 0)}
+        onClick={() => void exportImage()}
+      >
+        Export tier list PNG
+      </button>{" "}
+      <button
+        disabled={busy}
+        onClick={() => {
+          try {
+            localStorage.setItem(key, JSON.stringify({ tiers, items }));
+            setMessage("List saved on this device.");
+          } catch {
+            setMessage("Storage unavailable or full. Export the list instead.");
+          }
+        }}
+      >
+        Save on device
+      </button>{" "}
+      <button disabled={busy} onClick={load}>
+        Open saved list
+      </button>
+      <p role="status">{message}</p>
+    </section>
+  );
 }
-
