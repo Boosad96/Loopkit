@@ -10,7 +10,11 @@ import './projects.css'
 function DateEditor({value,zone,onChange}:{value:string;zone:string;onChange:(value:string,zone:string)=>void}){
  const [wall,setWall]=useState(localTime(value,zone)),[error,setError]=useState('')
  const zones=Array.from(new Set(['UTC',zone,...(Intl.supportedValuesOf?.('timeZone')??[])]))
- useEffect(()=>setWall(localTime(value,zone)),[zone,value])
+ const [prev,setPrev]=useState([value,zone])
+ // Keep the displayed wall time in sync with the value/zone props by
+ // adjusting state during render (React docs pattern) instead of setState
+ // inside an effect, which would cascade renders.
+ if(prev[0]!==value||prev[1]!==zone){setPrev([value,zone]);setWall(localTime(value,zone))}
  function apply(w:string,z:string){setWall(w);try{onChange(resolveTime(w,z),z);setError('')}catch{setError('This time is missing or ambiguous in the chosen timezone. Choose another time, or enter the exact instant in UTC.')}}
  return <><label>Date and time<input type="datetime-local" value={wall} required aria-invalid={!!error} ref={el=>el?.setCustomValidity(error)} onChange={e=>apply(e.target.value,zone)}/></label><label>Timezone<select value={zone} onChange={e=>apply(wall,e.target.value)}>{zones.map(z=><option key={z}>{z}</option>)}</select></label>{error&&<p role="alert">{error}</p>}</>
 }
@@ -26,7 +30,12 @@ function MatchScore({a,b,current,onRecord}:{a:string;b:string;current?:[number,n
 export default function ProjectEditor({slug,existing,mode}:{slug:string;existing?:View;mode?:'edit'|'remix'}){
  const kind=slug as Kind
  const [cfg,setConfig]=useState<Config|null>(existing?.config??null),[published,setPublished]=useState(mode==='edit'?existing?.slug??'':''),[revision,setRevision]=useState(mode==='edit'?existing?.revision??0:0),[token,setToken]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[challengeKey,refresh]=useState(0)
- useEffect(()=>{if(!existing&&kinds.includes(kind))setConfig(initialConfig(kind));if(mode==='edit'&&existing){try{setToken(sessionStorage.getItem('lk-manage:'+existing.slug)??'')}catch{}}},[kind,existing,mode])
+ // Initialize a fresh editor config and restore the saved management key
+ // after mount. initialConfig() uses crypto.randomUUID()/Date.now() and the
+ // key lives in sessionStorage, so neither can run during render; deferring
+ // the update with queueMicrotask keeps it out of the effect's synchronous
+ // body, where setState would trigger cascading renders.
+ useEffect(()=>{queueMicrotask(()=>{if(!existing&&kinds.includes(kind))setConfig(initialConfig(kind));if(mode==='edit'&&existing){try{setToken(sessionStorage.getItem('lk-manage:'+existing.slug)??'')}catch{}}})},[kind,existing,mode])
  if(!cfg||!kinds.includes(kind))return <p>Opening editor…</p>
  const c=cfg
  const set=<K extends keyof Config>(k:K,v:Config[K])=>setConfig(old=>old?{...old,[k]:v}:old)

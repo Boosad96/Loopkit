@@ -17,6 +17,11 @@ function loadCheckout() {
 type Props={product:Product; configured:boolean; signedIn:boolean; listings?:{id:string;name:string}[]; brand:string};
 export default function Checkout({product,configured,signedIn,listings=[],brand}:Props) {
   const [message,setMessage]=useState(''),[busy,setBusy]=useState(false),[listing,setListing]=useState(listings[0]?.id ?? ''),[start,setStart]=useState('');
+  // Capture "now" once for the allowed start-date window (it must not shift
+  // on every render). The clock is read in an effect, like the countdown
+  // Timer; the inputs have no min/max until the first tick lands.
+  const [now,setNow]=useState<number|null>(null);
+  useEffect(()=>{const tick=()=>setNow(Date.now());tick()},[]);
   const requestKey=useRef('');
   useEffect(()=>{requestKey.current=crypto.randomUUID();},[product,listing,start]);
   if (!configured) return <p className="bill-note">Test checkout is awaiting merchant configuration.</p>;
@@ -40,7 +45,7 @@ export default function Checkout({product,configured,signedIn,listings=[],brand}
       }}).open();
     }catch(error){setMessage(error instanceof Error?error.message:'Unable to open checkout.');setBusy(false);}
   }
-  return <form className="bill-form" onSubmit={buy}>{product!=='pro'&&<><label>Approved community<select value={listing} onChange={e=>setListing(e.target.value)}>{listings.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label><label>Start date (UTC)<input required type="date" min={new Date(Date.now()+86400000).toISOString().slice(0,10)} max={new Date(Date.now()+90*86400000).toISOString().slice(0,10)} value={start} onChange={e=>setStart(e.target.value)}/></label></>}
+  return <form className="bill-form" onSubmit={buy}>{product!=='pro'&&<><label>Approved community<select value={listing} onChange={e=>setListing(e.target.value)}>{listings.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label><label>Start date (UTC)<input required type="date" min={now===null?undefined:new Date(now+86400000).toISOString().slice(0,10)} max={now===null?undefined:new Date(now+90*86400000).toISOString().slice(0,10)} value={start} onChange={e=>setStart(e.target.value)}/></label></>}
     <button className="bill-button" disabled={busy}>{busy?'Opening checkout…':'Open test checkout'}</button><div role="status">{message}</div></form>;
 }
 export function CancelRenewal() {

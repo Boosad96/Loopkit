@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import Challenge from '@/components/account/Challenge'
@@ -18,7 +19,11 @@ function Timer({ends,completion}:{ends:string;completion:string}){
 }
 function Attached({slug,match}:{slug:string;match:Kind}){
  const [view,setView]=useState<View|null>(null),[message,setMessage]=useState('Loading linked project…')
- useEffect(()=>{const controller=new AbortController();setView(null);setMessage('Loading linked project…')
+ const [prev,setPrev]=useState([slug,match])
+ // Reset the linked view when the slug changes by adjusting state during
+ // render; the effect below then only performs the fetch.
+ if(prev[0]!==slug||prev[1]!==match){setPrev([slug,match]);setView(null);setMessage('Loading linked project…')}
+ useEffect(()=>{const controller=new AbortController()
  fetch('/api/projects/'+slug,{signal:controller.signal,cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();const v:View=await r.json();if(v.kind!==match)throw Error();setView(v)}).catch(()=>{if(!controller.signal.aborted)setMessage('This linked project is unavailable.')})
  return()=>controller.abort()},[slug,match])
  return view?<ProjectView initial={view} compact/>:<p>{message}</p>
@@ -27,15 +32,21 @@ export function draftView(kind:Kind,config:Config):View {
  return {slug:'',kind,config,revision:0,updatedAt:'',counts:{},votes:0,joined:0,finished:0,voted:false,participating:false,completed:false}
 }
 export default function ProjectView({initial,compact=false,embed=false,theme}:{initial:View;compact?:boolean;embed?:boolean;theme?:Config['theme']}) {
- const [live,setLive]=useState(initial),[choices,setChoices]=useState<string[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[challengeKey,refresh]=useState(0)
+ const [live,setLive]=useState(initial),[choices,setChoices]=useState<string[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[challengeKey,refresh]=useState(0),[now,setNow]=useState<number|null>(null)
+ const [prevInitial,setPrevInitial]=useState(initial)
+ // Adopt a fresh initial view by adjusting state during render instead of
+ // syncing it in an effect.
+ if(prevInitial!==initial){setPrevInitial(initial);setLive(initial)}
  const view=initial.slug?live:initial,{kind,config:c,slug}=view
- useEffect(()=>{setLive(initial)},[initial])
  useEffect(()=>{
    if(!slug)return
    const controller=new AbortController()
    async function load(){if(document.visibilityState==='hidden')return;try{const r=await fetch('/api/projects/'+slug,{signal:controller.signal,cache:'no-store'});if(r.ok)setLive(await r.json())}catch{/* Preserve the last view during temporary disconnection. */}}
    const id=setInterval(load,30000);return()=>{controller.abort();clearInterval(id)}
  },[slug])
+ // Clock for the "past deadline" check, ticking on the same 30 s cadence as
+ // the live refresh above. (Calling Date.now() during render is impure.)
+ useEffect(()=>{const tick=()=>setNow(Date.now());tick();const id=setInterval(tick,30000);return()=>clearInterval(id)},[])
  async function participate(e:FormEvent<HTMLFormElement>){
    e.preventDefault();const form=e.currentTarget,b=(e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement|null
    const action=b?.value || (kind==='poll-maker'?'vote':'join')
@@ -45,7 +56,7 @@ export default function ProjectView({initial,compact=false,embed=false,theme}:{i
     const updated=await fetch('/api/projects/'+slug,{cache:'no-store'});if(!updated.ok)throw Error('Saved. Refresh to see the update.');setLive(await updated.json());setMessage(action==='vote'?'Your vote was counted.':'Participation updated.')
    }catch(e){setMessage(e instanceof Error?e.message:'Unable to save.')}finally{setBusy(false);refresh(v=>v+1)}
  }
- const past=Date.parse(c.ends)<=Date.now()
+ const past=now!==null&&Date.parse(c.ends)<=now
  function responseForm(poll=false){
    if(embed && slug)return <a target="_blank" rel="noopener noreferrer" href={'/s/'+slug}>Participate on LoopKit</a>
    if(!slug)return <small>Participation opens on the shared page.</small>
@@ -64,7 +75,7 @@ export default function ProjectView({initial,compact=false,embed=false,theme}:{i
  {kind==='tournament-bracket-maker'&&<><div className="pj-bracket">{bracket.map((r,i)=><section key={i}><h3>{i===bracket.length-1?'Final':'Round '+(i+1)}</h3>{r.map(m=><div key={m.key} className="pj-match">{[m.a,m.b].map((t,j)=><div key={j} className={t&&t.id===m.winner?.id?'pj-winner':''}><span>{t?.name||(m.bye?'Bye':'To be decided')}</span><b>{m.score?.[j]??'–'}</b></div>)}</div>)}</section>)}</div>{bracket.at(-1)?.[0].winner&&<p>Champion · {bracket.at(-1)?.[0].winner?.name}</p>}<button onClick={()=>imageExport(c.title,bracket.flatMap((r,i)=>['Round '+(i+1),...r.map(m=>(m.a?.name??'Pending')+' vs '+(m.b?.name??'Pending')+'   '+(m.score?.join(' – ')??''))])).catch(()=>setMessage('Image export failed.'))}>Download bracket image</button></>}
  {kind==='leaderboard-maker'&&<><ol className="pj-board">{board.map(e=><motion.li layout="position" key={e.id}><strong>#{e.rank}</strong><span>{e.name}</span><b>{e.score}</b></motion.li>)}</ol><div className="project-actions"><button onClick={()=>download(new Blob([csv([['Rank','Player','Score'],...board.map(e=>[e.rank,e.name,e.score])])],{type:'text/csv'}),'leaderboard.csv')}>Download CSV</button><button onClick={()=>imageExport(c.title,board.map(e=>'#'+e.rank+'   '+e.name+'   '+e.score)).catch(()=>setMessage('Image export failed.'))}>Download image</button></div></>}
  {kind==='goal-tracker'&&<><p><strong>{c.progress}</strong> of {c.target} · {Math.round(100*c.progress/c.target)}%</p><progress value={Math.min(c.target,c.progress)} max={c.target}/><ul>{c.milestones.map((m,i)=><li key={i}>{m} · {m<=c.progress?'Reached':'Upcoming'}</li>)}</ul></>}
- {kind==='community-link-page-maker'&&<>{c.logo&&<img src={c.logo} width={64} height={64} alt="" referrerPolicy="no-referrer"/>}{linkList()}</>}
+ {kind==='community-link-page-maker'&&<>{c.logo&&<Image src={c.logo} width={64} height={64} alt="" referrerPolicy="no-referrer" unoptimized/>}{linkList()}</>}
  {kind==='community-challenge-maker'&&<><p>Ends {date}</p><p className="pj-description">{c.rules}</p><p>{view.joined} participants · {view.finished} complete</p>{view.completed&&<p>You completed this challenge.</p>}{responseForm()}{c.attachments.Leaderboard&&<Attached slug={c.attachments.Leaderboard} match="leaderboard-maker"/>}</>}
  {kind==='community-event-page-maker'&&c.order.map(section=><section className="pj-section" key={section}><h3>{section}</h3>
  {section==='Event information'&&<><p>{date} · {c.timezone}</p>{c.organizer&&<p>Hosted by {c.organizer}</p>}<button onClick={()=>download(new Blob([calendar(c,(slug||'draft')+'@loopkit')],{type:'text/calendar'}),'event.ics')}>Add to calendar</button></>}
