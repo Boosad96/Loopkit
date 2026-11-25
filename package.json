@@ -1,0 +1,52 @@
+{
+  "name": "loopkit",
+  "version": "0.1.0",
+  "description": "Community event tools and shareable event hubs.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "build:worker": "opennextjs-cloudflare build",
+    "preview:worker": "opennextjs-cloudflare preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Boosad96/Loopkit.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@electric-sql/pglite": "^0.6.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@js-temporal/polyfill": "^0.5.1",
+    "@opennextjs/cloudflare": "^1.20.18",
+    "@playwright/test": "^1.65.1",
+    "@radix-ui/react-dialog": "^1.3.1",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.2",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^26.6.10",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.2",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.6",
+    "lucide-react": "^1.80.0",
+    "motion": "^14.14.0",
+    "next": "^16.4.6",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.2",
+    "wrangler": "^4.168.0",
+    "zod": "^4.6.7"
+  }
+}

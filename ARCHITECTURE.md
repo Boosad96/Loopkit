@@ -1,0 +1,4 @@
+# Architecture
+The Next.js App Router serves public tool pages, browser-only editors and request-scoped server views from a single TypeScript application. Local image tools process original files on the visitor’s device. The public catalog in lib/tools.ts controls tool routes, names and related links.
+Supabase provides managed PostgreSQL and authentication. Versioned migrations define data ownership and shared project operations. Public links identify projects; editing requires separately verified authority. Billing is a server-side boundary. Use the test provider until merchant setup and release verification are complete.
+Cloudflare Workers is the deployment target via OpenNext. Browser-loaded public variables are build-time inputs. Private keys belong in runtime secrets. Never reuse staging keys in production. Keep owner-reviewed discovery distinct from sponsored inventory.

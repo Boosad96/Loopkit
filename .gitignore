@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.open-next/
+.wrangler/
+.env*
+!.env.example
+*.tsbuildinfo
+test-results/
+playwright-report/
+coverage/
+next-env.d.ts
