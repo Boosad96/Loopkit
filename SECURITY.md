@@ -1,0 +1,4 @@
+# Security and release review
+Only server-side routes may access service credentials. Public identifiers must never convey edit rights. Keep webhook signatures and anonymous project management credentials out of analytics and logs. Store secrets in deployment settings. Treat the SQL policies, service-role handlers and payment verification routines as separate authorization boundaries.
+External origins are restricted by Content Security Policy. Private pages and public project previews carry indexing controls. Only embed routes permit external framing. Same-origin checks supplement session and data-layer checks. Third-party financial, consent, advertising and database settings require staging verification.
+Send suspected abuse privately through the configured contact address. Rotate exposed credentials and revoke affected sessions before restoring service. See TEST_REPORT.md for actual verification.
