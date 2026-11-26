@@ -135,7 +135,8 @@ async function availableTools() {
       sitemap.includes("<loc>https://www.loopkit.site/tools/" + tool.slug + "</loc>")).map((tool) => tool.slug));
     catalogCache = { until: now + 5 * 60000, tools };
     return tools;
-  } catch {
+    } catch (error) {
+    console.warn("growth_catalog_error", { name: error?.name, message: String(error?.message ?? error).slice(0, 200) });
     return useFallback("catalog_unreachable");
   }
 }
@@ -195,6 +196,8 @@ async function fetchSource(env, source, term, since, cache, now) {
           cooldown: [401, 403].includes(response.status) ? now + 12 * hour : 0 };
       }
     } catch (error) {
+      console.warn("growth_fetch_failed", { source: source.id, host: url.hostname,
+        name: error?.name, message: String(error?.message ?? error).slice(0, 200) });
       if (response?.ok && error.name !== "TimeoutError") return { state: "error", message: "Invalid or oversized upstream response" };
     }
     if (attempt === 1) return { state: "error", message: failure, cooldown: now + 60000 };
