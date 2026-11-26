@@ -1,7 +1,10 @@
+import ActivityTrend from "@/components/account/ActivityTrend";
+import { hasPro } from "@/lib/billing/server";
 import { AccountNav, Page, Notice, styles } from "@/components/account/ui";
 import { userClient, requireUser } from "@/lib/account/server";
 export default async function Screen() {
-  await requireUser();
+  const user = await requireUser();
+  const pro = await hasPro(user.id);
   const { data, error } = await (await userClient())!.rpc("usage_summary");
   return (
     <Page
@@ -9,6 +12,7 @@ export default async function Screen() {
       intro="Consenting visitor activity on your shared projects during the last 30 days."
     >
       <AccountNav />
+      {pro && <ActivityTrend />}
       {error ? (
         <Notice code="unavailable" />
       ) : !data?.length ? (

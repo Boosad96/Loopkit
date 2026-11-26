@@ -180,3 +180,4 @@
   opacity: 0.5;
   cursor: default;
 }
+.trends>div{display:grid;grid-template-columns:7.4rem minmax(0,1fr);gap:.75rem;align-items:center;border-top:1px solid var(--border);padding:.65rem 0}.series{position:relative;min-height:1.4rem;font-size:.875rem}.series i{height:3px;background:var(--link);display:block;transform-origin:left;animation:revealSeries 360ms ease-out}.series:nth-child(2) i{background:var(--muted)}@keyframes revealSeries{from{transform:scaleX(0)}to{transform:scaleX(1)}}@media(prefers-reduced-motion:reduce){.series i{animation:none}}

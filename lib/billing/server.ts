@@ -1,4 +1,5 @@
 import "server-only";
+import { sameOrigin } from "../origin";
 import { currentUser, serviceClient } from "@/lib/account/server";
 import { defaults, type Price } from "./contracts";
 import { billingConfigured } from "./razorpay";
@@ -19,7 +20,7 @@ export async function hasPro(userId: string) {
 }
 export async function authenticatedWrite(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin !== new URL(request.url).origin) return null;
+  if (!sameOrigin(origin, request.url)) return null;
   return await currentUser();
 }
 export { readLimited, fail } from "./http";

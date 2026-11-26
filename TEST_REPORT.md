@@ -1,4 +1,21 @@
 # Verification
+
+## Latest verification — private review build
+
+| Check | Result |
+| --- | --- |
+| Strict TypeScript and ESLint | Passed. |
+| Unit and database integration | 65 passing tests in 12 Vitest files, including all migrations applied to PostgreSQL-compatible PGlite, role boundaries, vote handling, paid reservations, replay handling, reports and editorial approval. |
+| Public browser acceptance | 29 Chromium tests passed. The tests cover 16 tool routes, all eight local utilities, event composition, date handling, bracket progression, exports, public SEO, private route redirects, mobile navigation, themes and reduced motion. |
+| Authenticated and hosted integration | Five Playwright scenarios passed against disposable PostgreSQL 17, PostgREST and Supabase Auth. Covered admin/member isolation, claim and update permissions, public embeds, duplicate voting, Event Hub RSVP, private-project read denial, registration, sign-in, listing moderation, data export, account deletion and HMAC-verified webhook replay. |
+| Release package | Next.js production build and OpenNext Worker bundling succeeded. Wrangler dry run and local workerd smoke test completed. Home, tools, team generator, pricing, robots and PNG social card returned 200. Signed-out dashboard returned 307. |
+| Dependency advisory scan | 0 critical, 0 high, 3 moderate. The advisories concern OpenNext's glob/minimatch dependency graph. No release-time downgrade or breaking override was applied. |
+| Screenshots | 20 screenshots in qa/, including real authenticated admin and member pages, public directories, tools, pricing, Event Hub editor and four homepage theme/device combinations. |
+
+The authenticated service run used local auto-confirmation for test users. A test-only verification fixture supplies challenge decisions. The payment webhook test used a locally signed payload and a real reservation in the disposable database. No money moved. Merchant-issued test checkout, real email delivery, OAuth, production Turnstile, CMP consent and the deployed domain remain private-staging checks. No independent penetration test or formal WCAG certification has been performed. The marketing pages, analytics reports and pricing contain no test records from these runs.
+
+## Earlier runs
+
 Initial isolated Vitest run: two files, 11 passing tests. This included utility algorithms and applying the first three migrations in PGlite with Supabase-compatible test roles. Real provider credentials were not supplied. Later checks are recorded below as executed.
 
 First optimized Next.js build completed using webpack and the TypeScript compiler API. Initial homepage suite: 14 browser checks passed. On the first route suite run, tool indexing, public pages and screenshot capture passed; the private route redirect assertion failed. The response was HTTP 200 during streamed rendering. An early redirect for signed-out private routes has been added; subsequent results supersede this first run.
@@ -23,3 +40,6 @@ Error: `app/privacy/page.tsx` imported `AnalyticsPreferences` from `@/components
 
 ### 5. `npm run e2e` (Playwright) — initially FAILED (14 failed), then PASSED (14 passed)
 First run failed before any test executed: Playwright expected `chromium_headless_shell-1255` but the cache held build 1254 (`Executable doesn't exist`). Fixed with `npx playwright install chromium` (no system packages installed). Rerun: 14 passed, including viewport-fit checks at 320–1920 px, dark/light screenshots, mobile navigation, Event Hub demo tabs, and theme persistence.
+
+## Final performance and artifact verification
+The optimized homepage recorded Lighthouse scores of 97 performance, 100 accessibility, 100 best practices and 100 SEO, with LCP 1.06 s and CLS 0. See docs/PERFORMANCE.md for measurement conditions and field-data limitations. The final package is 2,465.03 KiB compressed. A targeted private-key and provider-token signature scan found no matches in tracked and candidate files. This scope does not prove the absence of every possible secret.

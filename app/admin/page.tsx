@@ -1,4 +1,5 @@
 import Growth from "@/components/account/Growth";
+import ActivityTrend from "@/components/account/ActivityTrend";
 import Link from "next/link";
 import { tools } from "@/lib/tools";
 import { toolPolicies } from "@/lib/account/tools";
@@ -215,7 +216,12 @@ export default async function Screen({
                 </form>
               </article>
             ))}
-            {tab === "analytics" && <Growth />}
+            {tab === "analytics" && (
+              <>
+                <Growth />
+                <ActivityTrend />
+              </>
+            )}
             {tab === "analytics" && (
               <div className={styles.panel}>
                 <h2>Last 30 days</h2>

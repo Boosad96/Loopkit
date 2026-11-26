@@ -1,4 +1,4 @@
-import {OrderStatus,SponsorshipStatus} from "@/components/billing/Status";
+import { OrderStatus, SponsorshipStatus } from "@/components/billing/Status";
 import Link from "next/link";
 import { requireUser, serviceClient } from "@/lib/account/server";
 import { formatAmount, products, type Product } from "@/lib/billing/contracts";
@@ -90,7 +90,7 @@ export default async function Billing() {
                     <td>{products[o.product as Product]?.title}</td>
                     <td>{formatAmount(o.amount, o.currency)}</td>
                     <td>
-                      <OrderStatus status={o.status} createdAt={o.created_at}/>
+                      <OrderStatus status={o.status} createdAt={o.created_at} />
                       {o.payments.map((p) => (
                         <p key={p.id}>
                           {p.status}
@@ -108,7 +108,11 @@ export default async function Billing() {
                           {s.slot_id} · {s.starts_at.slice(0, 10)} to{" "}
                           {s.ends_at.slice(0, 10)} UTC
                           <br />
-                          <SponsorshipStatus status={s.status} holdUntil={s.hold_until} endsAt={s.ends_at}/>
+                          <SponsorshipStatus
+                            status={s.status}
+                            holdUntil={s.hold_until}
+                            endsAt={s.ends_at}
+                          />
                           <br />
                           {s.sponsorship_metrics.reduce(
                             (n, m) => n + m.views,

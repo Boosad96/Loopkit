@@ -142,3 +142,9 @@ it("hides suspended communities, then deletes owned content on account removal",
     ).rows,
   ).toEqual([]);
 });
+it('enforces the advanced daily report entitlement at the database boundary',async()=>{
+ await role('authenticated',member)
+ await expect(db.query('select * from activity_trend()')).rejects.toThrow('Access restricted')
+ await role('authenticated',admin)
+ expect((await db.query('select * from activity_trend()')).rows).toEqual([])
+})

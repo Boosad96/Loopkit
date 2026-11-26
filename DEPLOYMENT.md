@@ -60,3 +60,5 @@ OpenNext is the repository's adapter. Its Worker entry point, asset binding, com
 20. For updates use a GitHub pull request, commit the lockfile, apply additive migrations before code that depends on them, and rerun the review on staging. Record the application SHA, migrations, test results and rollback version. Obtain explicit approval before destructive cleanup.
 
 See docs/OWNER_CHECKLIST.md for launch sign-off, docs/COSTS.md for estimates and TEST_REPORT.md for actual executed results.
+
+Apply all six migrations through 006_activity_trends.sql in filename order on a fresh project. The advanced daily activity function checks Creator Pro eligibility and restricts the results to the signed-in organizer. For authenticated browser verification in GitHub, open **Actions → Verify hosted flows locally → Run workflow**. It uses a disposable database, local signup confirmation, and provider test fixtures on the runner. Public deployment requires separate owner approval.
