@@ -1,3 +1,4 @@
+import {OrderStatus,SponsorshipStatus} from "@/components/billing/Status";
 import Link from "next/link";
 import { requireUser, serviceClient } from "@/lib/account/server";
 import { formatAmount, products, type Product } from "@/lib/billing/contracts";
@@ -26,7 +27,6 @@ export default async function Billing() {
       .order("updated_at", { ascending: false })
       .limit(5),
   ]);
-  const renderedAt = new Date().getTime();
   return (
     <main className="bill-page">
       <header className="bill-intro">
@@ -90,10 +90,7 @@ export default async function Billing() {
                     <td>{products[o.product as Product]?.title}</td>
                     <td>{formatAmount(o.amount, o.currency)}</td>
                     <td>
-                      {o.status === "pending" &&
-                      Date.parse(o.created_at) + 900000 < renderedAt
-                        ? "Checkout closed"
-                        : o.status}
+                      <OrderStatus status={o.status} createdAt={o.created_at}/>
                       {o.payments.map((p) => (
                         <p key={p.id}>
                           {p.status}
@@ -111,12 +108,7 @@ export default async function Billing() {
                           {s.slot_id} · {s.starts_at.slice(0, 10)} to{" "}
                           {s.ends_at.slice(0, 10)} UTC
                           <br />
-                          {(s.status === "held" &&
-                            Date.parse(s.hold_until) < renderedAt) ||
-                          (s.status === "confirmed" &&
-                            Date.parse(s.ends_at) <= renderedAt)
-                            ? "Expired"
-                            : s.status}
+                          <SponsorshipStatus status={s.status} holdUntil={s.hold_until} endsAt={s.ends_at}/>
                           <br />
                           {s.sponsorship_metrics.reduce(
                             (n, m) => n + m.views,
