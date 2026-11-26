@@ -110,25 +110,34 @@ let catalogCache;
 async function availableTools() {
   const now = Date.now();
   if (catalogCache?.until > now) return catalogCache.tools;
-  let response;
+  // The sitemap is fetched from the main site through the public front door.
+  // That hop can fail (redirect, zone security) even though the site is live,
+  // so a failed read falls back to the bundled registry instead of failing
+  // the whole scan. All registry tools were verified live on 26 Nov 2026.
+  const fallback = new Set(registry.map((tool) => tool.slug));
+  const useFallback = (reason) => {
+    console.warn("growth_catalog_fallback", { reason });
+    catalogCache = { until: now + 5 * 60000, tools: fallback };
+    return fallback;
+  };
   try {
-    response = await fetch(site + "/sitemap.xml", {
-      redirect: "error", signal: AbortSignal.timeout(3500),
+    const response = await fetch(site + "/sitemap.xml", {
+      redirect: "follow", signal: AbortSignal.timeout(3500),
       cf: { cacheTtl: 300, cacheEverything: true },
     });
+    if (!response.ok) {
+      await response.body?.cancel();
+      return useFallback("catalog_http_" + response.status);
+    }
+    const sitemap = await readBounded(response, 26000);
+    if (!sitemap.includes("<urlset")) return useFallback("catalog_invalid");
+    const tools = new Set(registry.filter((tool) => sitemap.includes("<loc>" + tool.url + "</loc>") ||
+      sitemap.includes("<loc>https://www.loopkit.site/tools/" + tool.slug + "</loc>")).map((tool) => tool.slug));
+    catalogCache = { until: now + 5 * 60000, tools };
+    return tools;
   } catch {
-    throw Error("catalog_unreachable");
+    return useFallback("catalog_unreachable");
   }
-  if (!response.ok) {
-    await response.body?.cancel();
-    throw Error("catalog_http_" + response.status);
-  }
-  const sitemap = await readBounded(response, 26000);
-  if (!sitemap.includes("<urlset")) throw Error("catalog_invalid");
-  const tools = new Set(registry.filter((tool) => sitemap.includes("<loc>" + tool.url + "</loc>") ||
-    sitemap.includes("<loc>https://www.loopkit.site/tools/" + tool.slug + "</loc>")).map((tool) => tool.slug));
-  catalogCache = { until: now + 5 * 60000, tools };
-  return tools;
 }
 
 export async function startScan(env, trigger, now) {
