@@ -10,7 +10,7 @@ async function accessKey(issuer, kid, now) {
     return signingKeys.keys.find((key) => key.kid === kid);
   }
   const response = await fetch(issuer + "/cdn-cgi/access/certs", {
-    redirect: "error", signal: AbortSignal.timeout(4000), cf: { cacheTtl: 300, cacheEverything: true },
+    redirect: "manual", signal: AbortSignal.timeout(4000), cf: { cacheTtl: 300, cacheEverything: true },
   });
   if (!response.ok) {
     await response.body?.cancel();

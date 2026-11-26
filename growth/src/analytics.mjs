@@ -6,7 +6,7 @@ export async function analyticsSummary(env) {
   try {
     const response = await fetch(site + "/api/internal/growth-analytics", {
       headers: { authorization: "Bearer " + env.GROWTH_ANALYTICS_KEY },
-      signal: AbortSignal.timeout(4500), redirect: "error",
+      signal: AbortSignal.timeout(4500), redirect: "manual",
     });
     if (!response.ok) {
       await response.body?.cancel();

@@ -169,7 +169,7 @@ async function fetchSource(env, source, term, since, cache, now) {
     let response;
     let failure = "request_failed";
     try {
-      response = await fetch(url, { headers, signal: AbortSignal.timeout(3500), redirect: "error" });
+      response = await fetch(url, { headers, signal: AbortSignal.timeout(3500), redirect: "manual" });
       const retry = response.headers.get("retry-after");
       const reset = response.headers.get("x-ratelimit-reset");
       const left = response.headers.get("x-ratelimit-remaining");
