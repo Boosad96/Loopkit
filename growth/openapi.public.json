@@ -1,0 +1,202 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LoopKit Public Tools API",
+    "version": "1.0.0",
+    "description": "Use numeric parameters. Up to 20 requests per minute per edge location and client IP, and 1,500 shared UTC daily."
+  },
+  "servers": [
+    {
+      "url": "https://growth.loopkit.site"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/discord-timestamp": {
+      "get": {
+        "summary": "Create all nine Discord timestamp formats",
+        "responses": {
+          "200": {
+            "description": "Formatted Discord timestamps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "unix": 1735689600,
+                  "formats": {
+                    "t": "<t:1735689600:t>",
+                    "T": "<t:1735689600:T>",
+                    "d": "<t:1735689600:d>",
+                    "D": "<t:1735689600:D>",
+                    "f": "<t:1735689600:f>",
+                    "F": "<t:1735689600:F>",
+                    "s": "<t:1735689600:s>",
+                    "S": "<t:1735689600:S>",
+                    "R": "<t:1735689600:R>"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "invalid_filter"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "rate_limit"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "service_unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "service_unavailable"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "unix",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4102444800
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/random-teams": {
+      "get": {
+        "summary": "Split numbered slots into random, size-balanced teams",
+        "responses": {
+          "200": {
+            "description": "Teams by slot number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "teams": [
+                    [
+                      1,
+                      4
+                    ],
+                    [
+                      3,
+                      2
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "invalid_filter"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "rate_limit"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "service_unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "service_unavailable"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "players",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 64
+            }
+          },
+          {
+            "name": "teams",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 32
+            }
+          }
+        ]
+      }
+    }
+  }
+}

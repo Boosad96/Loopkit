@@ -293,7 +293,7 @@ function ProjectForm({ slug, existing, mode }: EditorProps) {
       );
       const data = await res.json();
       if (!res.ok) throw Error(data.error);
-      track("tool_complete");
+      track("tool_complete", undefined, kind);
       if (mode === "remix" && !published) track("remix");
       setPublished(data.slug);
       setRevision(data.revision);
@@ -350,7 +350,7 @@ function ProjectForm({ slug, existing, mode }: EditorProps) {
           onSubmit={save}
           onChange={() => {
             if (!started.current) {
-              track("tool_start");
+              track("tool_start", undefined, kind);
               started.current = true;
             }
           }}

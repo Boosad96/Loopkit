@@ -63,3 +63,27 @@ test('read permissions isolate other organizers and hide management hashes',asyn
  await role('authenticated',member)
  expect((await db.query('select slug from projects')).rows).toHaveLength(1)
 })
+
+test('growth attribution preserves legacy usage and exposes aggregates only to the service role',async()=>{
+ const visitor=randomUUID(), session=randomUUID()
+ await db.exec('reset role')
+ await db.exec('set role service_role')
+ await db.query("select record_usage($1,'page_view',null)",[visitor])
+ for(const event of ['page_view','page_view','tool_start','tool_complete']){
+  await db.query(`select record_attributed_usage($1,$2,null,$3,'/tools/spin-wheel',
+    'campaign','loopkit_growth','hn','spin-wheel')`,[visitor,event,session])
+ }
+ await db.query("select record_attributed_usage($1,'page_view',null,$2,'/tools','organic',null,null,null)",[visitor,randomUUID()])
+ const {rows}=await db.query<{report:unknown}>('select growth_attribution_summary() as report')
+ expect(rows[0].report).toMatchObject({
+  visits:2,referral_visits:1,organic_visits:1,campaign_visits:1,tool_starts:1,tool_completions:1,campaign_completions:1,
+  landing_pages:[{name:'/tools',visits:1},{name:'/tools/spin-wheel',visits:1}],
+  campaign_sources:[{name:'loopkit_growth:hn',visits:1,completions:1}],
+  tools:[{name:'spin-wheel',starts:1,completions:1}],
+ })
+ await role('authenticated',admin)
+ await expect(db.query('select growth_attribution_summary()')).rejects.toThrow(/permission denied/)
+ await expect(db.query("select record_attributed_usage($1,'page_view',null,$2,'/','direct',null,null,null)",[visitor,session])).rejects.toThrow(/permission denied/)
+ await role('anon')
+ await expect(db.query('select growth_attribution_summary()')).rejects.toThrow(/permission denied/)
+})

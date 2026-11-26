@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { zonedInstants } from "./algorithms";
+import { discordTimestampMarkup, discordTimestampStyles, zonedInstants } from "./algorithms";
 import { Copy, downloadBlob } from "./common";
 const formats: Record<string, Intl.DateTimeFormatOptions> = {
   t: { timeStyle: "short" },
@@ -93,9 +93,8 @@ export function Timestamp() {
             Previews use your device’s time zone. Discord displays each
             timestamp in the reader’s local time.
           </p>
-          {[...Object.keys(formats), "R"].map((style) => {
-            const markdown =
-              "<t:" + Math.floor(instant / 1000) + ":" + style + ">";
+          {discordTimestampStyles.map((style) => {
+            const markdown = discordTimestampMarkup(Math.floor(instant / 1000), style);
             return (
               <div className="lk-result-row" key={style}>
                 <code>{markdown}</code>

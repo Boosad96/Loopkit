@@ -1,0 +1,29 @@
+name: Deploy LoopKit Growth Worker
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: loopkit-growth-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: loopkit-growth-production
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      LOOPKIT_GROWTH_D1_ID: ${{ vars.LOOPKIT_GROWTH_D1_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run growth:check
+      - run: npm run growth:build
+      - run: npm run growth:deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CI: "true"

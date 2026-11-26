@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useSyncExternalStore } from "react";
+import { clearAttribution, sessionAttribution } from "@/lib/account/attribution";
 import { usePathname } from "next/navigation";
 const key = "loopkit.analytics.preference";
 const cookie = "lk_visitor";
@@ -19,8 +20,8 @@ declare global {
     readonly globalPrivacyControl?: boolean;
   }
 }
-export function track(event: string, slug?: string) {
-  if (!enabled()) return;
+export function track(event: string, slug?: string, tool?: string) {
+  if (!enabled() || window.top !== window || location.pathname.startsWith("/embed/")) return;
   if (!document.cookie.split("; ").some((v) => v.startsWith(cookie + "=")))
     document.cookie =
       cookie +
@@ -31,7 +32,7 @@ export function track(event: string, slug?: string) {
   void fetch("/api/account/events", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ event, slug }),
+    body: JSON.stringify({ event, slug, attribution: sessionAttribution(new URL(location.href), document.referrer, Date.now(), tool) }),
     keepalive: true,
   }).catch(() => {});
 }
@@ -63,8 +64,10 @@ export function AnalyticsPreferences() {
             } catch {
               return;
             }
-            if (!value)
+            if (!value) {
               document.cookie = cookie + "=; Path=/; Max-Age=0; SameSite=Lax";
+              clearAttribution();
+            }
             window.dispatchEvent(new Event("loopkit-preferences"));
           }}
         />{" "}

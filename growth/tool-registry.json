@@ -1,0 +1,464 @@
+[
+  {
+    "slug": "countdown-maker",
+    "name": "Shareable Countdown Maker",
+    "category": "Events",
+    "description": "Give everyone the same finish line, wherever they live.",
+    "url": "https://loopkit.site/tools/countdown-maker",
+    "keywords": [
+      "countdown timer",
+      "event countdown",
+      "shareable countdown"
+    ],
+    "useCases": [
+      "Count down to a Friday community stream."
+    ],
+    "highIntentPhrases": [
+      "looking for a countdown timer",
+      "recommend a countdown timer",
+      "how can I find a countdown timer"
+    ],
+    "steps": [
+      "Name the event",
+      "Choose its time zone and start time",
+      "Share the countdown"
+    ],
+    "limitation": "Check the intended offset when clocks change.",
+    "local": false,
+    "advice": "Choose the event’s time zone before sharing a countdown link, then verify it against the organizer’s local time."
+  },
+  {
+    "slug": "tournament-bracket-maker",
+    "name": "Tournament Bracket Maker",
+    "category": "Competition",
+    "description": "Seed a single-elimination bracket and advance the winners.",
+    "url": "https://loopkit.site/tools/tournament-bracket-maker",
+    "keywords": [
+      "tournament bracket",
+      "single elimination bracket",
+      "bracket generator"
+    ],
+    "useCases": [
+      "Run an eight-team Rocket League cup."
+    ],
+    "highIntentPhrases": [
+      "looking for a tournament bracket",
+      "recommend a tournament bracket",
+      "how can I find a tournament bracket"
+    ],
+    "steps": [
+      "Add competitors",
+      "Set seeds",
+      "Enter each completed match score"
+    ],
+    "limitation": "Single elimination only.",
+    "local": false,
+    "advice": "For a single-elimination event, seed the entrants first and advance each winner after entering the score."
+  },
+  {
+    "slug": "poll-maker",
+    "name": "Poll Maker",
+    "category": "Community",
+    "description": "Ask a question and collect votes on a public page.",
+    "url": "https://loopkit.site/tools/poll-maker",
+    "keywords": [
+      "poll maker",
+      "online poll",
+      "shareable poll",
+      "poll without login"
+    ],
+    "useCases": [
+      "Choose the game for your next stream."
+    ],
+    "highIntentPhrases": [
+      "looking for a poll maker",
+      "recommend a poll maker",
+      "how can I find a poll maker"
+    ],
+    "steps": [
+      "Write a question",
+      "Add distinct choices",
+      "Share the voting link"
+    ],
+    "limitation": "Anonymous voting cannot guarantee one vote per person.",
+    "local": false,
+    "advice": "List distinct choices and share one voting link. For a binding vote, use a system that verifies each voter."
+  },
+  {
+    "slug": "random-team-generator",
+    "name": "Random Team Generator",
+    "category": "Competition",
+    "description": "Split a roster into teams for the next round.",
+    "url": "https://loopkit.site/tools/random-team-generator",
+    "keywords": [
+      "random team generator",
+      "split into teams",
+      "randomize teams",
+      "balanced teams generator"
+    ],
+    "useCases": [
+      "Split ten players into two squads."
+    ],
+    "highIntentPhrases": [
+      "looking for a random team generator",
+      "recommend a random team generator",
+      "how can I split into teams"
+    ],
+    "steps": [
+      "Enter one player per line",
+      "Choose a team count",
+      "Generate and copy teams"
+    ],
+    "limitation": "Skill balancing depends on organizer-supplied ratings.",
+    "local": true,
+    "advice": "Use one entry per player and set the number of teams. Add consistent skill ratings if you need balanced teams."
+  },
+  {
+    "slug": "leaderboard-maker",
+    "name": "Leaderboard Maker",
+    "category": "Competition",
+    "description": "Publish a scoreboard that you control.",
+    "url": "https://loopkit.site/tools/leaderboard-maker",
+    "keywords": [
+      "leaderboard maker",
+      "online leaderboard",
+      "shareable scoreboard",
+      "leaderboard generator"
+    ],
+    "useCases": [
+      "Track points across a weekly trivia series."
+    ],
+    "highIntentPhrases": [
+      "looking for a leaderboard maker",
+      "recommend a leaderboard maker",
+      "how can I find a leaderboard maker"
+    ],
+    "steps": [
+      "Name the leaderboard",
+      "Add players and scores",
+      "Share standings"
+    ],
+    "limitation": "The organizer is responsible for score accuracy.",
+    "local": false,
+    "advice": "Start with player names and scores, then share the standings and assign an organizer to keep scores current."
+  },
+  {
+    "slug": "spin-wheel",
+    "name": "Random Spin Wheel",
+    "category": "Competition",
+    "description": "Spin a colorful wheel to choose an entry.",
+    "url": "https://loopkit.site/tools/spin-wheel",
+    "keywords": [
+      "spin wheel",
+      "wheel of names",
+      "random picker wheel",
+      "random wheel picker"
+    ],
+    "useCases": [
+      "Pick the next map for casual matches."
+    ],
+    "highIntentPhrases": [
+      "looking for a spin wheel",
+      "recommend a spin wheel",
+      "how can I find a spin wheel"
+    ],
+    "steps": [
+      "Add entries",
+      "Choose colors",
+      "Spin the wheel"
+    ],
+    "limitation": "For recreational choices only.",
+    "local": true,
+    "advice": "Put one choice on each line and spin to pick one. This fits casual choices such as selecting a map."
+  },
+  {
+    "slug": "community-event-page-maker",
+    "name": "Community Event Page Maker",
+    "category": "Events",
+    "description": "Give participants a time, place and RSVP link.",
+    "url": "https://loopkit.site/tools/community-event-page-maker",
+    "keywords": [
+      "community event page",
+      "event page maker",
+      "shareable event page",
+      "community event signup"
+    ],
+    "useCases": [
+      "Schedule a community watch party."
+    ],
+    "highIntentPhrases": [
+      "looking for a community event page",
+      "recommend a community event page",
+      "how can I find a community event page"
+    ],
+    "steps": [
+      "Describe your event",
+      "Select the time zone",
+      "Share the event page"
+    ],
+    "limitation": "Guests need the current public link.",
+    "local": false,
+    "advice": "Publish the event time and time zone with the RSVP link so participants have one place to check the details."
+  },
+  {
+    "slug": "discord-timestamp-generator",
+    "name": "Discord Timestamp Generator",
+    "category": "Events",
+    "description": "Format a date so Discord shows each reader their local time.",
+    "url": "https://loopkit.site/tools/discord-timestamp-generator",
+    "keywords": [
+      "discord timestamp",
+      "discord time zone",
+      "discord unix timestamp",
+      "discord local time"
+    ],
+    "useCases": [
+      "Announce a match time across continents."
+    ],
+    "highIntentPhrases": [
+      "looking for a discord timestamp",
+      "recommend a discord timestamp",
+      "how can I find a discord timestamp"
+    ],
+    "steps": [
+      "Select a date",
+      "Choose a time zone",
+      "Copy the desired Discord format"
+    ],
+    "limitation": "Discord controls the final display language.",
+    "local": true,
+    "advice": "Discord renders markup like <t:1735689600:F> in each reader’s local time. Replace the number with the event’s Unix time in seconds, or use :R for relative time."
+  },
+  {
+    "slug": "community-rules-generator",
+    "name": "Community Rules Generator",
+    "category": "Community",
+    "description": "Build an editable rules list for your server or group.",
+    "url": "https://loopkit.site/tools/community-rules-generator",
+    "keywords": [
+      "discord server rules",
+      "community rules template",
+      "discord rules template",
+      "discord rules generator"
+    ],
+    "useCases": [
+      "Prepare a welcome channel for a new Discord server."
+    ],
+    "highIntentPhrases": [
+      "looking for a discord server rules",
+      "recommend a discord server rules",
+      "how can I find a discord server rules"
+    ],
+    "steps": [
+      "Select a template",
+      "Edit and order rules",
+      "Copy your final text"
+    ],
+    "limitation": "Review each rule against your own moderation practices.",
+    "local": true,
+    "advice": "Start with an editable rules template, then tailor enforcement and reporting instructions to your server."
+  },
+  {
+    "slug": "tier-list-maker",
+    "name": "Tier List Maker",
+    "category": "Creative",
+    "description": "Arrange images into custom tiers and export your list.",
+    "url": "https://loopkit.site/tools/tier-list-maker",
+    "keywords": [
+      "tier list maker",
+      "tier list generator",
+      "image tier list",
+      "custom tier list"
+    ],
+    "useCases": [
+      "Rank your community’s favorite maps."
+    ],
+    "highIntentPhrases": [
+      "looking for a tier list maker",
+      "recommend a tier list maker",
+      "how can I find a tier list maker"
+    ],
+    "steps": [
+      "Add local images",
+      "Move each into a tier",
+      "Export the finished image"
+    ],
+    "limitation": "Use images you have permission to share.",
+    "local": true,
+    "advice": "Create your tier labels, drag images into place and export one image of the finished list."
+  },
+  {
+    "slug": "discord-emoji-resizer",
+    "name": "Discord Emoji Resizer",
+    "category": "Creative",
+    "description": "Crop and size a local image for a custom emoji.",
+    "url": "https://loopkit.site/tools/discord-emoji-resizer",
+    "keywords": [
+      "discord emoji size",
+      "discord emoji resize",
+      "resize discord emoji",
+      "discord emoji resizer"
+    ],
+    "useCases": [
+      "Turn your team crest into a server emoji."
+    ],
+    "highIntentPhrases": [
+      "looking for a discord emoji size",
+      "recommend a discord emoji size",
+      "how can I find a discord emoji size"
+    ],
+    "steps": [
+      "Choose an image",
+      "Set the crop",
+      "Download the resized emoji"
+    ],
+    "limitation": "Static image output.",
+    "local": true,
+    "advice": "Crop the static image to a square first, then export and check the upload preview."
+  },
+  {
+    "slug": "telegram-sticker-resizer",
+    "name": "Telegram Sticker Resizer",
+    "category": "Creative",
+    "description": "Prepare a static sticker image while keeping its proportions.",
+    "url": "https://loopkit.site/tools/telegram-sticker-resizer",
+    "keywords": [
+      "telegram sticker resize",
+      "resize telegram sticker",
+      "telegram sticker size",
+      "telegram sticker resizer"
+    ],
+    "useCases": [
+      "Prepare a transparent mascot for a sticker pack."
+    ],
+    "highIntentPhrases": [
+      "looking for a telegram sticker resize",
+      "recommend a telegram sticker resize",
+      "how can I find a telegram sticker resize"
+    ],
+    "steps": [
+      "Choose an image",
+      "Check the preview",
+      "Download the static sticker"
+    ],
+    "limitation": "Supports static stickers only.",
+    "local": true,
+    "advice": "For a static sticker, preserve the aspect ratio and resize the longest side to 512 pixels before checking transparency."
+  },
+  {
+    "slug": "gaming-profile-card-maker",
+    "name": "Gaming Profile Card Maker",
+    "category": "Creative",
+    "description": "Design a shareable player card with your name and avatar.",
+    "url": "https://loopkit.site/tools/gaming-profile-card-maker",
+    "keywords": [
+      "gaming profile card",
+      "player card maker",
+      "gamer profile card",
+      "esports player card"
+    ],
+    "useCases": [
+      "Introduce the team captain before a match."
+    ],
+    "highIntentPhrases": [
+      "looking for a gaming profile card",
+      "recommend a gaming profile card",
+      "how can I find a gaming profile card"
+    ],
+    "steps": [
+      "Enter your handle",
+      "Choose an avatar and theme",
+      "Download your card"
+    ],
+    "limitation": "Only include details you want others to see.",
+    "local": true,
+    "advice": "Use your public handle and an avatar you can share, then export the finished player card as an image."
+  },
+  {
+    "slug": "goal-tracker",
+    "name": "Shareable Goal Tracker",
+    "category": "Community",
+    "description": "Track progress toward a community milestone.",
+    "url": "https://loopkit.site/tools/goal-tracker",
+    "keywords": [
+      "shareable goal tracker",
+      "community goal tracker",
+      "shareable progress tracker",
+      "public goal tracker"
+    ],
+    "useCases": [
+      "Count community contributions toward 100 translations."
+    ],
+    "highIntentPhrases": [
+      "looking for a shareable goal tracker",
+      "recommend a shareable goal tracker",
+      "how can I find a shareable goal tracker"
+    ],
+    "steps": [
+      "Set a target",
+      "Update progress",
+      "Share the tracker"
+    ],
+    "limitation": "Updates are managed by the organizer.",
+    "local": false,
+    "advice": "Set one measurable target and share the progress page. Give an organizer responsibility for updating it."
+  },
+  {
+    "slug": "community-challenge-maker",
+    "name": "Community Challenge Maker",
+    "category": "Community",
+    "description": "Set a challenge and let participants record progress.",
+    "url": "https://loopkit.site/tools/community-challenge-maker",
+    "keywords": [
+      "community challenge tracker",
+      "community challenge maker",
+      "challenge progress tracker",
+      "online group challenge"
+    ],
+    "useCases": [
+      "Organize a week of daily drawing prompts."
+    ],
+    "highIntentPhrases": [
+      "looking for a community challenge tracker",
+      "recommend a community challenge tracker",
+      "how can I find a community challenge tracker"
+    ],
+    "steps": [
+      "Write the challenge",
+      "Choose its duration",
+      "Share participation details"
+    ],
+    "limitation": "Set clear completion rules before inviting participants.",
+    "local": false,
+    "advice": "Write the completion criteria and duration before inviting participants, and give them one place to track progress."
+  },
+  {
+    "slug": "community-link-page-maker",
+    "name": "Community Link Page Maker",
+    "category": "Community",
+    "description": "Gather your official community destinations on one page.",
+    "url": "https://loopkit.site/tools/community-link-page-maker",
+    "keywords": [
+      "community link page",
+      "community link in bio",
+      "link page maker",
+      "discord server links page"
+    ],
+    "useCases": [
+      "List a server invite, stream and tournament signup."
+    ],
+    "highIntentPhrases": [
+      "looking for a community link page",
+      "recommend a community link page",
+      "how can I find a community link page"
+    ],
+    "steps": [
+      "Add your profile",
+      "Add official links",
+      "Share your page"
+    ],
+    "limitation": "Check external links regularly.",
+    "local": false,
+    "advice": "Put official destinations on one public page and label each by purpose, such as the server invite, livestream or signup."
+  }
+]

@@ -1,7 +1,16 @@
+import { campaigns, campaignSources, toolSlugs, trafficChannels, validCampaign, validLanding } from "@/lib/account/attribution";
 import { readLimited } from "@/lib/billing/server";
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { serviceClient } from "@/lib/account/server";
+const attribution = z.object({
+  session: z.uuid(),
+  landing: z.string().refine(validLanding),
+  channel: z.enum(trafficChannels),
+  campaign: z.enum(campaigns).optional(),
+  source: z.enum(campaignSources).optional(),
+  tool: z.string().refine((value) => toolSlugs.includes(value)).optional(),
+}).strict().refine(validCampaign);
 const input = z
   .object({
     event: z.enum([
@@ -13,6 +22,7 @@ const input = z
       "shared_visit",
       "remix",
     ]),
+    attribution: attribution.optional(),
     slug: z
       .string()
       .regex(/^[a-f0-9]{24}$/)
@@ -65,10 +75,18 @@ export async function POST(req: Request) {
   });
   if (quota.error || !quota.data)
     return new Response(null, { status: quota.error ? 503 : 429 });
-  const { error } = await db.rpc("record_usage", {
-    visitor: cookie,
-    kind: parsed.data.event,
-    project_slug: parsed.data.slug || null,
-  });
+  const { attribution: session, event, slug } = parsed.data;
+  const baseArgs = { visitor: cookie, kind: event, project_slug: slug || null };
+  const { error } = session && process.env.GROWTH_ATTRIBUTION_ENABLED === "true"
+    ? await db.rpc("record_attributed_usage", {
+        ...baseArgs,
+        session_key: session.session,
+        landing_page: session.landing,
+        traffic_channel: session.channel,
+        campaign_name: session.campaign || null,
+        campaign_source: session.source || null,
+        tool_slug: session.tool || null,
+      })
+    : await db.rpc("record_usage", baseArgs);
   return error ? new Response(null, { status: 503 }) : empty();
 }

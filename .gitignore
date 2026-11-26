@@ -9,3 +9,8 @@ test-results/
 playwright-report/
 coverage/
 next-env.d.ts
+
+.growth-local/
+/growth/.dev.vars
+/growth/.dev.vars.*
+!/growth/.dev.vars.example

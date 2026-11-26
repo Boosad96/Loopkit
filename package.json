@@ -11,7 +11,12 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "build:worker": "opennextjs-cloudflare build",
-    "preview:worker": "opennextjs-cloudflare preview"
+    "preview:worker": "opennextjs-cloudflare preview",
+    "growth:registry": "node growth/scripts/registry.mjs",
+    "growth:openapi": "node growth/scripts/openapi.mjs",
+    "growth:check": "node growth/scripts/registry.mjs --check && node growth/scripts/openapi.mjs --check && node --test --test-isolation=none growth/test/*.test.mjs",
+    "growth:build": "wrangler deploy --dry-run --config growth/wrangler.toml --outdir .growth-local/artifacts",
+    "growth:deploy": "node growth/scripts/deploy.mjs"
   },
   "repository": {
     "type": "git",

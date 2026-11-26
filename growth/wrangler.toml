@@ -1,0 +1,38 @@
+name = "loopkit-growth"
+main = "src/index.mjs"
+compatibility_date = "2026-06-01"
+compatibility_flags = ["global_fetch_strictly_public"]
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "growth.loopkit.site", custom_domain = true }]
+
+[vars]
+DISCOVERY_ENABLED = "true"
+ENABLE_GITHUB = "true"
+ENABLE_BLUESKY = "false"
+ENABLE_RSS = "false"
+LOOKBACK_HOURS = "48"
+PUBLIC_API_DAILY_LIMIT = "1500"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[observability]
+enabled = true
+head_sampling_rate = 0.1
+
+[[d1_databases]]
+binding = "DB"
+database_name = "loopkit-growth"
+database_id = "00000000-0000-4000-8000-000000000000"
+migrations_dir = "migrations"
+
+[[ratelimits]]
+name = "PUBLIC_RATE"
+namespace_id = "16791"
+simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
+name = "ADMIN_RATE"
+namespace_id = "16792"
+simple = { limit = 60, period = 60 }

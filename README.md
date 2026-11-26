@@ -14,3 +14,7 @@ LoopKit is an English-language toolkit for community event organizers. The repos
 For development use Node 24, npm ci and npm run dev. The hosted GitHub Actions checks provide a browser-based way to run validation. Environment settings are listed in .env.example. LoopKit is a provisional brand pending clearance.
 
 The [release review](RELEASE_REVIEW.md) lists the implemented routes, verified scope, external dependencies and remaining launch steps. Production browser evidence is in [qa](qa/). The **Verify hosted flows locally** GitHub Action runs disposable database and identity services on its runner. Its challenge and webhook fixtures are isolated from the application.
+
+## LoopKit Growth Engine
+
+The separate Cloudflare Worker adds demand discovery, a private review dashboard, Meta Muse API, and public numeric tool APIs. Start with the [growth engine README](growth/README.md) for browser setup and launch verification. See [developer integration](growth/DEVELOPERS.md) for widgets and [rollback](growth/ROLLBACK.md) for recovery.

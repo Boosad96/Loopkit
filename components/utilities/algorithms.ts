@@ -105,3 +105,9 @@ export function stickerSize(
     Math.max(1, Math.round(height * scale)),
   ];
 }
+
+export const discordTimestampStyles = ["t", "T", "d", "D", "f", "F", "s", "S", "R"] as const;
+export type DiscordTimestampStyle = (typeof discordTimestampStyles)[number];
+export function discordTimestampMarkup(unix: number, style: DiscordTimestampStyle) {
+  return `<t:${unix}:${style}>`;
+}

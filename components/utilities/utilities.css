@@ -8,13 +8,16 @@
   border: 1px solid var(--border, #626c78);
   border-radius: 10px;
 }
+.lk-tool-distribution label:not(:has([type="checkbox"])),
 .lk-utility label:not(:has([type="checkbox"])) {
   display: grid;
   gap: 0.4rem;
   margin-block: 1rem;
   max-width: 46rem;
 }
+.lk-tool-distribution input:not([type="color"], [type="range"], [type="checkbox"]),
 .lk-utility input:not([type="color"], [type="range"], [type="checkbox"]),
+.lk-tool-distribution textarea,
 .lk-utility textarea,
 .lk-utility select {
   box-sizing: border-box;
@@ -28,13 +31,16 @@
   background: Canvas;
   color: CanvasText;
 }
+.lk-tool-distribution input[type="checkbox"],
 .lk-utility input[type="checkbox"] {
   margin-right: 0.5rem;
 }
+.lk-tool-distribution label:has([type="checkbox"]),
 .lk-utility label:has([type="checkbox"]) {
   display: block;
   margin: 0.8rem 0;
 }
+.lk-tool-distribution button,
 .lk-utility button {
   max-width: 100%;
   margin: 0.25rem 0.2rem 0.25rem 0;
@@ -51,6 +57,7 @@
   opacity: 0.55;
   cursor: default;
 }
+.lk-tool-distribution :focus-visible,
 .lk-utility :focus-visible {
   outline: 3px solid #31aabe;
   outline-offset: 2px;
@@ -157,6 +164,7 @@
 }
 .lk-utility input,
 .lk-utility select,
+.lk-tool-distribution textarea,
 .lk-utility textarea {
   accent-color: var(--accent);
 }

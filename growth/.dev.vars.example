@@ -1,0 +1,7 @@
+# Copy to growth/.dev.vars for local development only.
+ACCESS_TEAM_URL=https://YOUR-TEAM.cloudflareaccess.com
+ACCESS_AUD=YOUR_ACCESS_APPLICATION_AUDIENCE
+GROWTH_API_KEYS='{"meta-muse":{"sha256":"REPLACE_WITH_SHA256_HEX","scopes":["read","scan","review"]}}'
+# GITHUB_SEARCH_TOKEN=
+# STACK_EXCHANGE_KEY=
+# GROWTH_ANALYTICS_KEY=

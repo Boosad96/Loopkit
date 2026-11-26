@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { tools } from "@/lib/tools";
 import UtilityEditor from "@/components/utilities/UtilityEditor";
+import ToolDistribution from "@/components/utilities/ToolDistribution";
 import ProjectEditor from "@/components/projects/ProjectEditor";
 import type { Metadata } from "next";
 type Props = { params: Promise<{ slug: string }> };
@@ -70,6 +71,7 @@ export default async function ToolPage({ params }: Props) {
       <h1>{t.name}</h1>
       <p>{t.description}</p>
       {t.local ? <UtilityEditor slug={slug} /> : <ProjectEditor slug={slug} />}
+      <ToolDistribution slug={slug} name={t.name} embeddable={t.local} />
       <section className="tool-guide">
         <h2>How to use it</h2>
         <ol>
