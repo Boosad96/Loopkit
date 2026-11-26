@@ -6,14 +6,6 @@ workers_dev = false
 preview_urls = false
 routes = [{ pattern = "growth.loopkit.site", custom_domain = true }]
 
-[vars]
-DISCOVERY_ENABLED = "true"
-ENABLE_GITHUB = "true"
-ENABLE_BLUESKY = "false"
-ENABLE_RSS = "false"
-LOOKBACK_HOURS = "48"
-PUBLIC_API_DAILY_LIMIT = "1500"
-
 [triggers]
 crons = ["*/15 * * * *"]
 

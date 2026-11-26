@@ -52,7 +52,6 @@ const accepted = { limit: async () => ({ success: true }) };
 async function environment(t) {
   return {
     DB: testDatabase(t), ADMIN_RATE: accepted, PUBLIC_RATE: accepted,
-    DISCOVERY_ENABLED: "true",
     GROWTH_API_KEYS: JSON.stringify({
       "meta-test": { sha256: await sha256(secret), scopes: ["read", "review", "scan"] },
       readonly: { sha256: await sha256(secret), scopes: ["read"] },
@@ -148,6 +147,7 @@ test("real SQL scan lifecycle, public API quota, access isolation, scopes, revie
   assert.equal(requests[2].searchParams.get("page"), "1");
 
   const status = await (await run("/api/growth/status", { headers: auth })).json();
+  assert.equal(status.automation_enabled, true);
   assert.equal(status.launch_mode, true);
   assert.equal(status.counts.total, 1);
   assert.equal(status.last_scan.state, "success");
@@ -174,6 +174,10 @@ test("real SQL scan lifecycle, public API quota, access isolation, scopes, revie
   assert.equal((await run("/api/v1/random-teams?players=8&teams=3")).status, 429);
   await maintain(env, now + 32 * day);
   assert.equal((await env.DB.prepare("SELECT count(*) AS count FROM opportunities").first()).count, 0);
+  env.DISCOVERY_ENABLED = "false";
+  const disabled = await run("/api/growth/scan", { method: "POST", headers: auth });
+  assert.equal(disabled.status, 409);
+  assert.deepEqual(await disabled.json(), { status: "disabled" });
 });
 
 test("a signed Cloudflare Access identity can load the dashboard but cross-origin mutations fail", async (t) => {

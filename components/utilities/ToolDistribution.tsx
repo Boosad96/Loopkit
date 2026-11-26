@@ -6,8 +6,14 @@ const subscribe = () => () => {};
 const browserOrigin = () => location.origin;
 const serverOrigin = () => "";
 
-export default function ToolDistribution({ slug, name, embeddable }: {
-  slug: string; name: string; embeddable: boolean;
+export default function ToolDistribution({
+  slug,
+  name,
+  embeddable,
+}: {
+  slug: string;
+  name: string;
+  embeddable: boolean;
 }) {
   const origin = useSyncExternalStore(subscribe, browserOrigin, serverOrigin);
   const [attribution, setAttribution] = useState(false);
@@ -15,7 +21,8 @@ export default function ToolDistribution({ slug, name, embeddable }: {
   if (!origin) return null;
 
   const url = origin + "/tools/" + slug;
-  const widget = origin + "/embed/tool/" + slug + (attribution ? "?attribution=1" : "");
+  const widget =
+    origin + "/embed/tool/" + slug + (attribution ? "?attribution=1" : "");
   const code = `<iframe src="${widget}" title="LoopKit tool" width="100%" height="680" loading="lazy" sandbox="allow-scripts allow-same-origin allow-downloads${attribution ? " allow-popups allow-popups-to-escape-sandbox" : ""}" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>`;
   async function copy(value: string) {
     try {
@@ -27,20 +34,54 @@ export default function ToolDistribution({ slug, name, embeddable }: {
   }
   return (
     <details className="tool-guide">
-      <summary>{embeddable ? "Share or embed this tool" : "Share this tool"}</summary>
+      <summary>
+        {embeddable ? "Share or embed this tool" : "Share this tool"}
+      </summary>
       <div className="lk-tool-distribution">
-        <label>Tool link<input readOnly value={url} onFocus={(event) => event.target.select()} /></label>
-        <button type="button" onClick={() => copy(url)}>Copy tool link</button>
+        <label>
+          Tool link
+          <input
+            readOnly
+            value={url}
+            onFocus={(event) => event.target.select()}
+          />
+        </label>
+        <button type="button" onClick={() => copy(url)}>
+          Copy tool link
+        </button>
         {typeof navigator.share === "function" && (
-          <button type="button" onClick={() => {
-            void navigator.share({ title: name, url }).catch(() => setMessage("Sharing closed."));
-          }}>Share via device</button>
+          <button
+            type="button"
+            onClick={() => {
+              void navigator
+                .share({ title: name, url })
+                .catch(() => setMessage("Sharing closed."));
+            }}
+          >
+            Share via device
+          </button>
         )}
         {embeddable && (
           <>
-            <label><input type="checkbox" checked={attribution} onChange={(event) => setAttribution(event.target.checked)} /> Include Made with LoopKit attribution</label>
-            <label>Embed code<textarea readOnly value={code} onFocus={(event) => event.target.select()} /></label>
-            <button type="button" onClick={() => copy(code)}>Copy embed code</button>
+            <label>
+              <input
+                type="checkbox"
+                checked={attribution}
+                onChange={(event) => setAttribution(event.target.checked)}
+              />{" "}
+              Include Made with LoopKit attribution
+            </label>
+            <label>
+              Embed code
+              <textarea
+                readOnly
+                value={code}
+                onFocus={(event) => event.target.select()}
+              />
+            </label>
+            <button type="button" onClick={() => copy(code)}>
+              Copy embed code
+            </button>
           </>
         )}
         <p role="status">{message}</p>

@@ -14,7 +14,9 @@ type Props = {
 };
 export default async function ToolWidget({ params, searchParams }: Props) {
   const [{ tool: slug }, { attribution }, policies] = await Promise.all([
-    params, searchParams, toolPolicies(),
+    params,
+    searchParams,
+    toolPolicies(),
   ]);
   const tool = tools.find((item) => item.slug === slug && item.local);
   if (!tool || policies[slug]?.available === false) notFound();
@@ -25,7 +27,11 @@ export default async function ToolWidget({ params, searchParams }: Props) {
       {attribution === "1" && (
         <p>
           <Link
-            href={"/tools/" + slug + "?utm_source=widget&utm_medium=referral&utm_campaign=loopkit_widget"}
+            href={
+              "/tools/" +
+              slug +
+              "?utm_source=widget&utm_medium=referral&utm_campaign=loopkit_widget"
+            }
             target="_blank"
             rel="noopener noreferrer"
           >

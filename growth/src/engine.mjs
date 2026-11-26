@@ -9,6 +9,7 @@ const schedule = 15 * 60000;
 const reportInterval = 12 * hour;
 const leaseTime = 60000;
 const recent = (now) => now - 48 * hour;
+const discoveryEnabled = (env) => env.DISCOVERY_ENABLED === undefined || env.DISCOVERY_ENABLED === "true";
 
 function countQuery(db, now) {
   return db.prepare(`SELECT total,pending,(SELECT count(*) FROM opportunities
@@ -74,7 +75,7 @@ export async function engineStatus(env, now) {
   ])).map((result) => result.results);
   const active = state[0];
   return {
-    automation_enabled: env.DISCOVERY_ENABLED === "true",
+    automation_enabled: discoveryEnabled(env),
     interval_minutes: 15,
     running: active.lease_until > now,
     launched_at: iso(active.launched_at),
@@ -85,11 +86,13 @@ export async function engineStatus(env, now) {
     manual_scans: { used: active.manual_day === utcDay(now) ? active.manual_count : 0, limit: 8 },
     sources: sources(env).map((source) => {
       const row = health.find((entry) => entry.source === source.id);
-      return { id: source.id, name: source.label, enabled: source.enabled,
-        state: !source.enabled ? "disabled" : row?.state || "pending",
+      const limit = sourceQuota(env, source);
+      const enabled = source.enabled && limit > 0;
+      return { id: source.id, name: source.label, enabled,
+        state: !enabled ? "disabled" : row?.state || "pending",
         checked_at: iso(row?.checked_at), error: row?.message ?? null, cooldown_until: iso(row?.cooldown_until),
         requests_today: usage.find((entry) => entry.bucket === "source:" + source.id)?.count ?? 0,
-        daily_limit: sourceQuota(env, source), upstream_remaining: row?.remaining ?? null,
+        daily_limit: limit, upstream_remaining: row?.remaining ?? null,
       };
     }),
   };
@@ -129,7 +132,7 @@ async function availableTools() {
 }
 
 export async function startScan(env, trigger, now) {
-  if (env.DISCOVERY_ENABLED !== "true" || !jobs(env).length) return { status: "disabled" };
+  if (!discoveryEnabled(env) || !jobs(env).length) return { status: "disabled" };
   const today = utcDay(now);
   const id = crypto.randomUUID();
   const manual = trigger !== "cron";
